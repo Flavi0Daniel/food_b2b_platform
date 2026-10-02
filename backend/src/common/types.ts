@@ -32,3 +32,18 @@ export function toSafeUser(user: UserRecord): SafeUser {
   const { password_hash: _passwordHash, ...safeUser } = user;
   return safeUser;
 }
+
+export const STAFF_ROLES: UserRole[] = ['ADMIN', 'OPERATOR'];
+export const isStaff = (role: UserRole): boolean => role === 'ADMIN' || role === 'OPERATOR';
+
+export type OrderStatus =
+  | 'PENDING_PAYMENT'
+  | 'AWAITING_APPROVAL'
+  | 'PROCESSING'
+  | 'IN_TRANSIT'
+  | 'DELIVERED'
+  | 'CANCELLED';
+
+export type OrderPaymentStatus = 'PENDING' | 'PROOF_SUBMITTED' | 'VALIDATED' | 'REJECTED';
+
+export type ProductUnit = 'KG' | 'CAIXA' | 'BALDE' | 'SACO' | 'UNIDADE';

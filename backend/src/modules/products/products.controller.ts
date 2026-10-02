@@ -10,19 +10,17 @@ export const productsController = {
   }),
 
   list: asyncHandler(async (req: Request, res: Response) => {
-    // Clientes só devem ver o catálogo disponível; Admin/Operador veem tudo
-    const forceAvailableOnly = req.user?.role === 'CLIENT';
-    const query = req.query as never as { categoryId?: number; onlyAvailable?: boolean };
-    const products = await productsService.listCatalog({
-      ...query,
-      onlyAvailable: forceAvailableOnly ? true : query.onlyAvailable,
-    });
+    const products = await productsService.listCatalog(req.query as never, req.user!.role);
     sendSuccess(res, products, 'Catálogo obtido com sucesso');
   }),
 
   updateAvailability: asyncHandler(async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const product = await productsService.setAvailability(id, req.body.isAvailable);
+    const product = await productsService.setAvailability(Number(req.params.id), req.body.isAvailable);
     sendSuccess(res, product, 'Disponibilidade do produto atualizada');
+  }),
+
+  updatePrice: asyncHandler(async (req: Request, res: Response) => {
+    const product = await productsService.setPrice(Number(req.params.id), req.body.sellPrice);
+    sendSuccess(res, product, 'Preço de venda atualizado');
   }),
 };

@@ -1,6 +1,8 @@
 import { AppError } from '../../common/errors/AppError';
 import { comparePassword, hashPassword } from '../../common/utils/password';
 import { hashToken } from '../../common/utils/hashToken';
+import { exec } from '../../common/utils/db';
+import { wrapEmailHtml } from '../../common/utils/emailTemplate';
 import {
   signAccessToken,
   signRefreshToken,
@@ -27,6 +29,19 @@ export const authService = {
 
     const passwordHash = await hashPassword(dto.password);
     const user = await authRepository.createClient(dto, passwordHash);
+
+    await exec(
+      `INSERT INTO email_outbox (to_email, to_name, subject, html_body) VALUES (?, ?, ?, ?)`,
+      [
+        user.email,
+        user.name,
+        'Bem-vindo à Plataforma B2B Alimentar',
+        wrapEmailHtml(
+          'A sua conta foi criada',
+          `Olá ${user.name}, a sua conta foi criada com sucesso. Já pode consultar o catálogo e fazer encomendas.`,
+        ),
+      ],
+    );
 
     return this.issueTokens(user.id, user.role, toSafeUser(user));
   },

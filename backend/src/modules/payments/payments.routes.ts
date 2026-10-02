@@ -1,27 +1,54 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
+import { idempotent } from '../../common/middlewares/idempotency.middleware';
+import { sensitiveWriteLimiter } from '../../common/middlewares/rateLimit.middleware';
 import { authorize } from '../../common/middlewares/rbac.middleware';
-import { AppError } from '../../common/errors/AppError';
-import { asyncHandler } from '../../common/utils/asyncHandler';
+import { uploadPaymentProof, verifyUploadedFiles } from '../../common/middlewares/upload.middleware';
+import { validate } from '../../common/middlewares/validate.middleware';
+import { paymentsController } from './payments.controller';
+import {
+  listPaymentsQuerySchema,
+  paymentIdParamSchema,
+  rejectPaymentSchema,
+  submitPaymentSchema,
+  validatePaymentSchema,
+} from './payments.schema';
 
 const router = Router();
 router.use(authMiddleware);
 
-/**
- * TODO (próxima etapa): validação financeira manual.
- *
- *  POST  /api/payments                  -> CLIENT envia comprovativo/referência da transação
- *  GET   /api/payments?status=PENDING   -> ADMIN vê a fila de validação
- *  PATCH /api/payments/:id/validate     -> ADMIN valida manualmente (seta validated_by/validated_at
- *                                           e avança orders.payment_status para VALIDATED)
- *  PATCH /api/payments/:id/reject       -> ADMIN rejeita, pedindo novo comprovativo ao cliente
- */
-router.all(
-  '*',
-  authorize('ADMIN', 'CLIENT'),
-  asyncHandler(async () => {
-    throw AppError.badRequest('Módulo de pagamentos ainda não implementado - próxima etapa');
-  }),
+// CLIENTE envia comprovativo (multipart: proof + orderId, method, transactionRef). Exige X-Idempotency-Key.
+router.post(
+  '/',
+  authorize('CLIENT'),
+  sensitiveWriteLimiter,
+  uploadPaymentProof,
+  verifyUploadedFiles,
+  validate({ body: submitPaymentSchema }),
+  idempotent,
+  paymentsController.submit,
+);
+
+// STAFF consulta a fila de validação
+router.get(
+  '/',
+  authorize('ADMIN', 'OPERATOR'),
+  validate({ query: listPaymentsQuerySchema }),
+  paymentsController.list,
+);
+
+// Só o ADMIN confirma/rejeita que o dinheiro entrou (para permitir ao OPERATOR: authorize('ADMIN', 'OPERATOR'))
+router.post(
+  '/:id/validate',
+  authorize('ADMIN'),
+  validate({ params: paymentIdParamSchema, body: validatePaymentSchema }),
+  paymentsController.validate,
+);
+router.post(
+  '/:id/reject',
+  authorize('ADMIN'),
+  validate({ params: paymentIdParamSchema, body: rejectPaymentSchema }),
+  paymentsController.reject,
 );
 
 export default router;

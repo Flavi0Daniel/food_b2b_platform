@@ -1,28 +1,59 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
 import { authorize } from '../../common/middlewares/rbac.middleware';
-import { AppError } from '../../common/errors/AppError';
-import { asyncHandler } from '../../common/utils/asyncHandler';
+import { uploadPod, verifyUploadedFiles } from '../../common/middlewares/upload.middleware';
+import { validate } from '../../common/middlewares/validate.middleware';
+import { shipmentsController } from './shipments.controller';
+import {
+  deliverBodySchema,
+  listShipmentsQuerySchema,
+  reassignCarrierSchema,
+  shipmentIdParamSchema,
+  updateShipmentStatusSchema,
+} from './shipments.schema';
 
 const router = Router();
 router.use(authMiddleware);
 
-/**
- * TODO (próxima etapa): logística e comprovativo de entrega.
- *
- *  GET   /api/shipments                  -> CARRIER vê as suas rotas; ADMIN vê todas
- *  PATCH /api/shipments/:id/status       -> CARRIER atualiza:
- *        TO_PICKUP -> COLLECTED -> IN_TRANSIT -> DELIVERED
- *  POST  /api/shipments/:id/pod          -> CARRIER faz upload de foto/assinatura (POD)
- *
- * Ao marcar DELIVERED, orders.order_status deve avançar para DELIVERED.
- */
-router.all(
-  '*',
-  authorize('ADMIN', 'CARRIER'),
-  asyncHandler(async () => {
-    throw AppError.badRequest('Módulo de logística ainda não implementado - próxima etapa');
-  }),
+// CARRIER vê só as suas guias (cegas); ADMIN/OPERATOR veem todas
+router.get(
+  '/',
+  authorize('CARRIER', 'ADMIN', 'OPERATOR'),
+  validate({ query: listShipmentsQuerySchema }),
+  shipmentsController.list,
+);
+router.get(
+  '/:id',
+  authorize('CARRIER', 'ADMIN', 'OPERATOR'),
+  validate({ params: shipmentIdParamSchema }),
+  shipmentsController.get,
+);
+
+// CARRIER: TO_PICKUP → COLLECTED → IN_TRANSIT (ou FAILED)
+router.patch(
+  '/:id/status',
+  authorize('CARRIER'),
+  validate({ params: shipmentIdParamSchema, body: updateShipmentStatusSchema }),
+  shipmentsController.updateStatus,
+);
+
+// CARRIER: conclui a entrega com POD (multipart: `photo` e/ou `signature`)
+router.post(
+  '/:id/deliver',
+  authorize('CARRIER'),
+  validate({ params: shipmentIdParamSchema }), // antes do upload: pedido inválido não grava ficheiros
+  uploadPod,
+  verifyUploadedFiles,
+  validate({ body: deliverBodySchema }),
+  shipmentsController.deliver,
+);
+
+// STAFF: troca de transportadora antes da recolha
+router.patch(
+  '/:id/carrier',
+  authorize('ADMIN', 'OPERATOR'),
+  validate({ params: shipmentIdParamSchema, body: reassignCarrierSchema }),
+  shipmentsController.reassign,
 );
 
 export default router;

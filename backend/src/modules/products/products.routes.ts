@@ -8,6 +8,7 @@ import {
   listProductsQuerySchema,
   productIdParamSchema,
   updateAvailabilitySchema,
+  updatePriceSchema,
 } from './products.schema';
 
 const router = Router();
@@ -18,18 +19,20 @@ router.use(authMiddleware);
 router.get('/', validate({ query: listProductsQuerySchema }), productsController.list);
 
 // Gestão do catálogo - só ADMIN
-router.post(
-  '/',
-  authorize('ADMIN'),
-  validate({ body: createProductSchema }),
-  productsController.create,
-);
+router.post('/', authorize('ADMIN'), validate({ body: createProductSchema }), productsController.create);
 
 router.patch(
   '/:id/availability',
   authorize('ADMIN'),
   validate({ params: productIdParamSchema, body: updateAvailabilitySchema }),
   productsController.updateAvailability,
+);
+
+router.patch(
+  '/:id/price',
+  authorize('ADMIN'),
+  validate({ params: productIdParamSchema, body: updatePriceSchema }),
+  productsController.updatePrice,
 );
 
 export default router;
