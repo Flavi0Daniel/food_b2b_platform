@@ -9,6 +9,9 @@ async function purge(): Promise<void> {
     await exec(
       "DELETE FROM email_outbox WHERE status IN ('SENT', 'FAILED') AND created_at < NOW() - INTERVAL 30 DAY",
     );
+    await exec(
+      'DELETE FROM password_reset_tokens WHERE used = TRUE OR expires_at < NOW() - INTERVAL 1 DAY',
+    );
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Falha na limpeza periódica:', err);

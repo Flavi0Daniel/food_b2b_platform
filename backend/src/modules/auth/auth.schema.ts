@@ -31,3 +31,39 @@ export const refreshTokenSchema = z
   })
   .strict();
 export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>;
+
+// Edição do próprio perfil (qualquer perfil: ADMIN, OPERATOR, CLIENT, SUPPLIER, CARRIER).
+// Email não é editável aqui (exigiria um fluxo de reverificação) - de propósito, não é um esquecimento.
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(2).max(150).optional(),
+    phone: z.string().trim().min(9).max(30).optional(),
+    companyName: z.string().trim().min(2).max(150).optional(),
+    taxId: z.string().trim().min(3).max(50).optional(),
+  })
+  .strict()
+  .refine((v) => Object.keys(v).length > 0, { message: 'Indique pelo menos um campo a alterar' });
+export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória').max(128),
+    newPassword,
+  })
+  .strict()
+  .refine((v) => v.currentPassword !== v.newPassword, {
+    message: 'A nova senha deve ser diferente da atual',
+    path: ['newPassword'],
+  });
+export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;
+
+export const forgotPasswordSchema = z.object({ email }).strict();
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, 'Token é obrigatório').max(255),
+    newPassword,
+  })
+  .strict();
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

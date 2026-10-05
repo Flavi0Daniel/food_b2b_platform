@@ -28,6 +28,9 @@ const envSchema = z.object({
 
   CORS_ORIGIN: z.string().default('http://localhost:4200'),
 
+  // Usado para montar o link de recuperação de senha enviado por email
+  FRONTEND_URL: z.string().default('http://localhost:4200'),
+
   UPLOAD_DIR: z.string().default('uploads'),
 
   // SMTP opcional: se SMTP_HOST não for definido, os emails ficam em fila (email_outbox)

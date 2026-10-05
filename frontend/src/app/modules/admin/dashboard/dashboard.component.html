@@ -1,0 +1,74 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="overview as o" class="space-y-6">
+  <p class="text-sm text-gray-500">
+    Período: {{ o.period.from }} a {{ o.period.to }}
+  </p>
+
+  <!-- Cartões de resumo -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white border rounded-lg p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Receita (entregue)</p>
+      <p class="text-2xl font-semibold text-gray-800 mt-1">{{ o.revenue.total | number: '1.0-2' }} Kz</p>
+      <p class="text-xs text-gray-400 mt-1">{{ o.revenue.deliveredOrders }} encomenda(s) entregue(s)</p>
+    </div>
+
+    <div class="bg-white border rounded-lg p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Custo operacional</p>
+      <p class="text-2xl font-semibold text-gray-800 mt-1">{{ o.cost.total | number: '1.0-2' }} Kz</p>
+    </div>
+
+    <div class="bg-white border rounded-lg p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Margem bruta</p>
+      <p class="text-2xl font-semibold text-brand-700 mt-1">{{ o.margin.gross | number: '1.0-2' }} Kz</p>
+      <p class="text-xs text-gray-400 mt-1">{{ o.margin.percent }}%</p>
+    </div>
+
+    <div class="bg-white border rounded-lg p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Por validar / aprovar</p>
+      <p class="text-sm text-gray-700 mt-2">{{ o.pending.pendingPayments }} pagamento(s) pendente(s)</p>
+      <p class="text-sm text-gray-700">{{ o.pending.awaitingApproval }} encomenda(s) por aprovar</p>
+      <p class="text-sm text-gray-700">{{ o.pending.pendingPickup }} guia(s) por recolher</p>
+    </div>
+  </div>
+
+  <!-- Encomendas por estado -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Encomendas por estado</h3>
+    <div class="flex flex-wrap gap-3">
+      <span
+        *ngFor="let s of o.ordersByStatus"
+        class="text-xs bg-gray-100 text-gray-700 rounded-full px-3 py-1"
+      >
+        {{ s.orderStatus }}: {{ s.count }}
+      </span>
+      <span *ngIf="!o.ordersByStatus.length" class="text-sm text-gray-400">Sem encomendas no período.</span>
+    </div>
+  </div>
+
+  <!-- Top produtos -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Produtos mais vendidos</h3>
+    <table class="w-full text-sm" *ngIf="o.topProducts.length; else noProducts">
+      <thead>
+        <tr class="text-left text-gray-500 border-b">
+          <th class="py-2 font-medium">Produto</th>
+          <th class="py-2 font-medium text-right">Quantidade</th>
+          <th class="py-2 font-medium text-right">Receita</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of o.topProducts" class="border-b last:border-0">
+          <td class="py-2 text-gray-700">{{ p.productName }}</td>
+          <td class="py-2 text-right text-gray-700">{{ p.quantitySold }}</td>
+          <td class="py-2 text-right text-gray-700">{{ p.revenue | number: '1.0-2' }} Kz</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noProducts>
+      <p class="text-sm text-gray-400">Sem vendas no período.</p>
+    </ng-template>
+  </div>
+</div>

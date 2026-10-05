@@ -38,3 +38,21 @@ export const sensitiveWriteLimiter = rateLimit({
   legacyHeaders: false,
   message: message('Demasiados pedidos nesta operação. Aguarde um pouco.'),
 });
+
+/** Recuperação de senha: 5 pedidos por hora por IP (evita spam de emails e abuso). */
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: message('Demasiados pedidos de recuperação de senha. Tente novamente mais tarde.'),
+});
+
+/** Submissão do token de reset: 10 tentativas por 15 min por IP. */
+export const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: message('Demasiadas tentativas. Tente novamente dentro de 15 minutos.'),
+});

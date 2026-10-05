@@ -33,4 +33,24 @@ export const authController = {
     if (!user) throw AppError.notFound('Utilizador não encontrado');
     sendSuccess(res, toSafeUser(user), 'Perfil obtido com sucesso');
   }),
+
+  updateProfile: asyncHandler(async (req: Request, res: Response) => {
+    const user = await authService.updateProfile(req.user!.id, req.body);
+    sendSuccess(res, user, 'Perfil atualizado com sucesso');
+  }),
+
+  changePassword: asyncHandler(async (req: Request, res: Response) => {
+    await authService.changePassword(req.user!.id, req.body);
+    sendSuccess(res, null, 'Senha alterada com sucesso. Inicie sessão novamente.');
+  }),
+
+  forgotPassword: asyncHandler(async (req: Request, res: Response) => {
+    const result = await authService.forgotPassword(req.body);
+    sendSuccess(res, null, result.message);
+  }),
+
+  resetPassword: asyncHandler(async (req: Request, res: Response) => {
+    await authService.resetPassword(req.body);
+    sendSuccess(res, null, 'Senha reposta com sucesso. Já pode iniciar sessão.');
+  }),
 };
