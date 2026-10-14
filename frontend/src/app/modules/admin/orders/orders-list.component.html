@@ -1,0 +1,55 @@
+<div class="flex items-center justify-between mb-5 gap-4 flex-wrap">
+  <h2 class="text-base font-semibold text-gray-800">Encomendas</h2>
+
+  <div class="flex items-center gap-3">
+    <input
+      [(ngModel)]="search"
+      (keyup.enter)="load()"
+      placeholder="Pesquisar por número..."
+      class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+    />
+    <select [(ngModel)]="statusFilter" (ngModelChange)="load()" class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+      <option *ngFor="let s of statusFilters" [value]="s.value">{{ s.label }}</option>
+    </select>
+  </div>
+</div>
+
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="!loading && !orders.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+  Nenhuma encomenda encontrada.
+</div>
+
+<div *ngIf="orders.length" class="bg-white border rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-gray-500 border-b bg-gray-50">
+        <th class="py-3 px-4 font-medium">Encomenda</th>
+        <th class="py-3 px-4 font-medium">Cliente</th>
+        <th class="py-3 px-4 font-medium">Data de entrega</th>
+        <th class="py-3 px-4 font-medium">Pagamento</th>
+        <th class="py-3 px-4 font-medium">Estado</th>
+        <th class="py-3 px-4 font-medium text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let o of orders"
+        [routerLink]="[o.id]"
+        class="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+      >
+        <td class="py-3 px-4 text-gray-700 font-medium">{{ o.orderNumber }}</td>
+        <td class="py-3 px-4 text-gray-600">{{ o.clientName }}</td>
+        <td class="py-3 px-4 text-gray-600">{{ o.requestedDeliveryDate || '—' }}</td>
+        <td class="py-3 px-4">
+          <app-status-badge [label]="paymentStatusLabel[o.paymentStatus]" [variant]="paymentStatusVariant(o.paymentStatus)"></app-status-badge>
+        </td>
+        <td class="py-3 px-4">
+          <app-status-badge [label]="orderStatusLabel[o.orderStatus]" [variant]="orderStatusVariant(o.orderStatus)"></app-status-badge>
+        </td>
+        <td class="py-3 px-4 text-right text-gray-700 font-medium">{{ o.totalAmount | number: '1.0-2' }} Kz</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

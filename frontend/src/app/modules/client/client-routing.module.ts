@@ -3,8 +3,12 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
-import { ComingSoonComponent } from '../../shared/components/coming-soon/coming-soon.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { CatalogComponent } from './catalog/catalog.component';
+import { CheckoutComponent } from './checkout/checkout.component';
+import { OrdersListComponent } from './orders/orders-list.component';
+import { OrderDetailComponent } from './orders/order-detail/order-detail.component';
+import { AddressesComponent } from './addresses/addresses.component';
 
 const navItems: ShellNavItem[] = [
   { label: 'Catálogo', route: 'catalog' },
@@ -20,9 +24,11 @@ const routes: Routes = [
     data: { title: 'Painel do Cliente', navItems, roles: ['CLIENT'] },
     children: [
       { path: '', redirectTo: 'catalog', pathMatch: 'full' },
-      { path: 'catalog', component: ComingSoonComponent, data: { pageTitle: 'Catálogo' } },
-      { path: 'orders', component: ComingSoonComponent, data: { pageTitle: 'As Minhas Encomendas' } },
-      { path: 'addresses', component: ComingSoonComponent, data: { pageTitle: 'As Minhas Moradas' } },
+      { path: 'catalog', component: CatalogComponent },
+      { path: 'checkout', component: CheckoutComponent },
+      { path: 'orders', component: OrdersListComponent },
+      { path: 'orders/:id', component: OrderDetailComponent },
+      { path: 'addresses', component: AddressesComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

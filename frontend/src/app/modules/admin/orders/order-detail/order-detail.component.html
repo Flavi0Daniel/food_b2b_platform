@@ -1,0 +1,217 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="order as o" class="max-w-4xl space-y-6">
+  <!-- Cabeçalho -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800">{{ o.orderNumber }}</h2>
+      <p class="text-sm text-gray-500">
+        {{ o.client?.name }}<span *ngIf="o.client?.companyName"> · {{ o.client?.companyName }}</span>
+        · criada em {{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <app-status-badge [label]="paymentStatusLabel[o.paymentStatus]" [variant]="paymentStatusVariant(o.paymentStatus)"></app-status-badge>
+      <app-status-badge [label]="orderStatusLabel[o.orderStatus]" [variant]="orderStatusVariant(o.orderStatus)"></app-status-badge>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Cliente -->
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Cliente</h3>
+      <p class="text-sm text-gray-600">{{ o.client?.name }}</p>
+      <p class="text-sm text-gray-500" *ngIf="o.client?.companyName">{{ o.client?.companyName }}</p>
+      <p class="text-sm text-gray-500" *ngIf="o.client?.phone">{{ o.client?.phone }}</p>
+    </div>
+
+    <!-- Entrega -->
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Entrega</h3>
+      <p class="text-sm text-gray-600">{{ o.deliveryAddress.street }}</p>
+      <p class="text-sm text-gray-600">
+        {{ o.deliveryAddress.city }}<span *ngIf="o.deliveryAddress.municipality">, {{ o.deliveryAddress.municipality }}</span>
+      </p>
+      <p class="text-sm text-gray-500 mt-2" *ngIf="o.requestedDeliveryDate">
+        {{ o.requestedDeliveryDate }}<span *ngIf="o.deliveryWindow"> · {{ o.deliveryWindow }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Itens -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Itens</h3>
+    <table class="w-full text-sm">
+      <tbody>
+        <tr *ngFor="let item of o.items" class="border-b last:border-0">
+          <td class="py-2 text-gray-700">{{ item.productName }}</td>
+          <td class="py-2 text-gray-500">{{ item.quantity }} {{ item.unit }} × {{ item.unitPrice | number: '1.0-2' }} Kz</td>
+          <td class="py-2 text-gray-500" *ngIf="item.supplier">Fornecedor: {{ item.supplier.name }}</td>
+          <td class="py-2 text-right text-gray-700 font-medium">{{ item.subtotal | number: '1.0-2' }} Kz</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="flex items-center justify-between pt-3 mt-2 border-t">
+      <span class="text-sm font-medium text-gray-700">Total</span>
+      <span class="text-base font-semibold text-brand-700">{{ o.totalAmount | number: '1.0-2' }} Kz</span>
+    </div>
+  </div>
+
+  <!-- Pagamento -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Pagamento</h3>
+
+    <div *ngFor="let p of o.payments" class="py-3 border-b last:border-0">
+      <div class="flex items-center justify-between text-sm">
+        <div>
+          <p class="text-gray-700">{{ p.method === 'MULTICAIXA_EXPRESS' ? 'Multicaixa Express' : 'Transferência' }} — {{ p.amount | number: '1.0-2' }} Kz</p>
+          <p class="text-xs text-gray-400" *ngIf="p.transactionRef">Ref: {{ p.transactionRef }}</p>
+          <button *ngIf="p.proofUrl" type="button" (click)="files.open(p.proofUrl)" class="block text-xs text-brand-600 hover:underline">Ver comprovativo</button>
+        </div>
+        <app-status-badge
+          [label]="p.status === 'VALIDATED' ? 'Validado' : p.status === 'REJECTED' ? 'Rejeitado' : 'Pendente'"
+          [variant]="p.status === 'VALIDATED' ? 'green' : p.status === 'REJECTED' ? 'red' : 'yellow'"
+        ></app-status-badge>
+      </div>
+
+      <!-- Ações de validação (só para pagamentos ainda pendentes) -->
+      <div *ngIf="p.status === 'PENDING'" class="mt-3">
+        <div *ngIf="rejectingPaymentId !== p.id" class="flex gap-2">
+          <button
+            type="button"
+            (click)="validatePayment(p.id)"
+            [disabled]="validatingPaymentId === p.id"
+            class="bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-medium px-4 py-2 rounded-md transition-colors"
+          >
+            {{ validatingPaymentId === p.id ? 'A validar...' : 'Validar Pagamento' }}
+          </button>
+          <button
+            type="button"
+            (click)="startReject(p.id)"
+            class="bg-white border border-red-300 text-red-600 hover:bg-red-50 text-xs font-medium px-4 py-2 rounded-md transition-colors"
+          >
+            Rejeitar
+          </button>
+        </div>
+
+        <div *ngIf="rejectingPaymentId === p.id" class="space-y-2 mt-2">
+          <textarea
+            [(ngModel)]="rejectReason"
+            rows="2"
+            placeholder="Motivo da rejeição (visível para o cliente)"
+            class="w-full rounded-md border-gray-300 text-sm focus:border-red-500 focus:ring-red-500"
+          ></textarea>
+          <div class="flex gap-2">
+            <button type="button" (click)="confirmReject()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md transition-colors">
+              Confirmar rejeição
+            </button>
+            <button type="button" (click)="cancelReject()" class="text-xs text-gray-500 hover:text-gray-700 px-4 py-2">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p *ngIf="paymentActionError" class="text-sm text-red-600 mt-2">{{ paymentActionError }}</p>
+  </div>
+
+  <!-- Aprovação -->
+  <div *ngIf="needsApproval" class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-1">Aprovar encomenda</h3>
+    <p class="text-sm text-gray-500 mb-4">Atribua um fornecedor a cada item e escolha a transportadora.</p>
+
+    <div class="space-y-3 mb-4">
+      <div *ngFor="let a of itemAssignments" class="flex items-center justify-between gap-4 py-2 border-b last:border-0">
+        <span class="text-sm text-gray-700">{{ a.productName }}</span>
+
+        <span *ngIf="a.loadingSuppliers" class="text-xs text-gray-400">A carregar fornecedores...</span>
+
+        <span *ngIf="!a.loadingSuppliers && !a.suppliers.length" class="text-xs text-red-600">
+          Nenhum fornecedor tem este produto na tabela de preços
+        </span>
+
+        <select
+          *ngIf="!a.loadingSuppliers && a.suppliers.length"
+          [(ngModel)]="a.selectedSupplierId"
+          class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500 min-w-[16rem]"
+        >
+          <option [ngValue]="null" disabled>Escolha o fornecedor</option>
+          <option *ngFor="let s of a.suppliers" [ngValue]="s.supplierId">
+            {{ s.supplierCompany || s.supplierName }} — {{ s.costPrice | number: '1.0-2' }} Kz
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Transportadora</label>
+        <select [(ngModel)]="selectedCarrierId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <option [ngValue]="null" disabled>Escolha a transportadora</option>
+          <option *ngFor="let c of carriers" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+        <p *ngIf="!carriers.length" class="text-xs text-red-600 mt-1">Nenhuma transportadora ativa registada.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Recolha agendada <span class="text-gray-400">(opcional)</span></label>
+        <input type="datetime-local" [(ngModel)]="pickupScheduledAt" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Notas para os fornecedores <span class="text-gray-400">(opcional)</span></label>
+      <textarea [(ngModel)]="approveNotes" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+    </div>
+
+    <p *ngIf="approveError" class="text-sm text-red-600 mb-3">{{ approveError }}</p>
+
+    <button
+      type="button"
+      (click)="approve()"
+      [disabled]="!canApprove || approving"
+      class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+    >
+      {{ approving ? 'A aprovar...' : 'Aprovar e Gerar Ordens de Compra' }}
+    </button>
+  </div>
+
+  <!-- Ordens de compra -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="o.purchaseOrders?.length">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Ordens de compra</h3>
+    <div *ngFor="let po of o.purchaseOrders" class="text-sm text-gray-600 py-1.5 border-b last:border-0 flex justify-between">
+      <span>{{ po.poNumber }} — {{ po.supplier.name }}</span>
+      <app-status-badge [label]="poStatusLabel(po.status)" [variant]="poStatusVariant(po.status)"></app-status-badge>
+    </div>
+  </div>
+
+  <!-- Guias de transporte -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="o.shipments.length">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Transporte</h3>
+    <div *ngFor="let s of o.shipments" class="text-sm text-gray-600 py-1.5 border-b last:border-0 flex justify-between">
+      <span>Guia #{{ s.id }}<span *ngIf="s.carrier"> — {{ s.carrier.name }}</span></span>
+      <app-status-badge [label]="shipmentStatusLabel(s.shipmentStatus)" [variant]="shipmentStatusVariant(s.shipmentStatus)"></app-status-badge>
+    </div>
+  </div>
+
+  <!-- Histórico -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Histórico</h3>
+    <div *ngFor="let h of o.history" class="text-sm py-1.5 border-b last:border-0">
+      <span class="text-gray-700">{{ h.status }}</span>
+      <span class="text-gray-400"> · {{ h.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+      <p *ngIf="h.note" class="text-xs text-gray-400">{{ h.note }}</p>
+    </div>
+  </div>
+
+  <button
+    *ngIf="canCancel"
+    type="button"
+    (click)="cancelOrder()"
+    [disabled]="cancelling"
+    class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-60"
+  >
+    {{ cancelling ? 'A cancelar...' : 'Cancelar encomenda' }}
+  </button>
+</div>

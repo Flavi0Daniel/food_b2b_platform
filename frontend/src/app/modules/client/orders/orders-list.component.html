@@ -1,0 +1,40 @@
+<h2 class="text-base font-semibold text-gray-800 mb-5">As minhas encomendas</h2>
+
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="!loading && !orders.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+  Ainda não fez nenhuma encomenda.
+  <a routerLink="/client/catalog" class="text-brand-600 hover:underline font-medium block mt-2">Ver catálogo</a>
+</div>
+
+<div *ngIf="orders.length" class="bg-white border rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-gray-500 border-b bg-gray-50">
+        <th class="py-3 px-4 font-medium">Encomenda</th>
+        <th class="py-3 px-4 font-medium">Data de entrega</th>
+        <th class="py-3 px-4 font-medium">Pagamento</th>
+        <th class="py-3 px-4 font-medium">Estado</th>
+        <th class="py-3 px-4 font-medium text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let o of orders"
+        [routerLink]="['/client/orders', o.id]"
+        class="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+      >
+        <td class="py-3 px-4 text-gray-700 font-medium">{{ o.orderNumber }}</td>
+        <td class="py-3 px-4 text-gray-600">{{ o.requestedDeliveryDate || '—' }}</td>
+        <td class="py-3 px-4">
+          <app-status-badge [label]="paymentStatusLabel[o.paymentStatus]" [variant]="paymentStatusVariant(o.paymentStatus)"></app-status-badge>
+        </td>
+        <td class="py-3 px-4">
+          <app-status-badge [label]="orderStatusLabel[o.orderStatus]" [variant]="orderStatusVariant(o.orderStatus)"></app-status-badge>
+        </td>
+        <td class="py-3 px-4 text-right text-gray-700 font-medium">{{ o.totalAmount | number: '1.0-2' }} Kz</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

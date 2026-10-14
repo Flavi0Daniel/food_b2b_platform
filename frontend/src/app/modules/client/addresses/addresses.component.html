@@ -1,0 +1,76 @@
+<div class="max-w-2xl space-y-6">
+  <div class="flex items-center justify-between">
+    <h2 class="text-base font-semibold text-gray-800">As minhas moradas</h2>
+    <button
+      type="button"
+      (click)="toggleForm()"
+      class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md transition-colors"
+    >
+      {{ showForm ? 'Cancelar' : '+ Nova morada' }}
+    </button>
+  </div>
+
+  <!-- Formulário de nova morada -->
+  <form *ngIf="showForm" [formGroup]="form" (ngSubmit)="submit()" class="bg-white border rounded-lg p-6 space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Nome da morada <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="label" placeholder="Ex: Sede, Restaurante Talatona" class="w-full rounded-md border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Rua / Endereço</label>
+      <input formControlName="street" class="w-full rounded-md border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+        <input formControlName="city" class="w-full rounded-md border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Município <span class="text-gray-400">(opcional)</span></label>
+        <input formControlName="municipality" class="w-full rounded-md border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de referência <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="referencePoint" class="w-full rounded-md border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" />
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-gray-700">
+      <input type="checkbox" formControlName="isDefault" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+      Usar como morada predefinida
+    </label>
+
+    <p *ngIf="formError" class="text-sm text-red-600">{{ formError }}</p>
+
+    <button
+      type="submit"
+      [disabled]="saving"
+      class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+    >
+      {{ saving ? 'A guardar...' : 'Guardar morada' }}
+    </button>
+  </form>
+
+  <!-- Lista -->
+  <div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+  <div *ngIf="!loading && !addresses.length && !showForm" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+    Ainda não tem nenhuma morada registada.
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2">
+    <div *ngFor="let a of addresses" class="bg-white border rounded-lg p-4">
+      <div class="flex items-start justify-between mb-1">
+        <p class="text-sm font-medium text-gray-800">{{ a.label || a.street }}</p>
+        <span *ngIf="a.isDefault" class="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">Predefinida</span>
+      </div>
+      <p class="text-sm text-gray-600">{{ a.street }}</p>
+      <p class="text-sm text-gray-500">{{ a.city }}<span *ngIf="a.municipality">, {{ a.municipality }}</span></p>
+      <p *ngIf="a.referencePoint" class="text-xs text-gray-400 mt-1">{{ a.referencePoint }}</p>
+    </div>
+  </div>
+</div>

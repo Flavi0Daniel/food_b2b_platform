@@ -1,0 +1,131 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="order as o" class="max-w-4xl space-y-6">
+  <!-- Cabeçalho -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800">{{ o.orderNumber }}</h2>
+      <p class="text-sm text-gray-500">Criada em {{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+    <div class="flex gap-2">
+      <app-status-badge [label]="paymentStatusLabel[o.paymentStatus]" [variant]="paymentStatusVariant(o.paymentStatus)"></app-status-badge>
+      <app-status-badge [label]="orderStatusLabel[o.orderStatus]" [variant]="orderStatusVariant(o.orderStatus)"></app-status-badge>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Entrega -->
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Entrega</h3>
+      <p class="text-sm text-gray-600">{{ o.deliveryAddress.street }}</p>
+      <p class="text-sm text-gray-600">
+        {{ o.deliveryAddress.city }}<span *ngIf="o.deliveryAddress.municipality">, {{ o.deliveryAddress.municipality }}</span>
+      </p>
+      <p class="text-sm text-gray-500 mt-2" *ngIf="o.requestedDeliveryDate">
+        Data pretendida: {{ o.requestedDeliveryDate }}<span *ngIf="o.deliveryWindow"> · {{ o.deliveryWindow }}</span>
+      </p>
+      <p class="text-sm text-gray-400 mt-2" *ngIf="o.notes">{{ o.notes }}</p>
+    </div>
+
+    <!-- Itens -->
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Itens</h3>
+      <div *ngFor="let item of o.items" class="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
+        <div>
+          <p class="text-gray-700">{{ item.productName }}</p>
+          <p class="text-xs text-gray-400">{{ item.quantity }} {{ item.unit }} × {{ item.unitPrice | number: '1.0-2' }} Kz</p>
+        </div>
+        <span class="text-gray-700 font-medium">{{ item.subtotal | number: '1.0-2' }} Kz</span>
+      </div>
+      <div class="flex items-center justify-between pt-3 mt-2 border-t">
+        <span class="text-sm font-medium text-gray-700">Total</span>
+        <span class="text-base font-semibold text-brand-700">{{ o.totalAmount | number: '1.0-2' }} Kz</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagamento -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Pagamento</h3>
+
+    <!-- Pagamentos já submetidos -->
+    <div *ngFor="let p of o.payments" class="flex items-center justify-between text-sm py-2 border-b last:border-0">
+      <div>
+        <p class="text-gray-700">{{ p.method === 'MULTICAIXA_EXPRESS' ? 'Multicaixa Express' : 'Transferência' }}</p>
+        <p class="text-xs text-gray-400" *ngIf="p.transactionRef">Ref: {{ p.transactionRef }}</p>
+      </div>
+      <app-status-badge
+        [label]="p.status === 'VALIDATED' ? 'Validado' : p.status === 'REJECTED' ? 'Rejeitado' : 'Pendente'"
+        [variant]="p.status === 'VALIDATED' ? 'green' : p.status === 'REJECTED' ? 'red' : 'yellow'"
+      ></app-status-badge>
+    </div>
+
+    <!-- Formulário de novo pagamento -->
+    <form *ngIf="needsPayment" [formGroup]="paymentForm" (ngSubmit)="submitPayment()" class="space-y-4 mt-4 pt-4 border-t">
+      <p class="text-sm text-gray-500" *ngIf="!o.payments.length">
+        Submeta o comprovativo do pagamento (Multicaixa Express ou Transferência) para avançarmos com a sua encomenda.
+      </p>
+      <p class="text-sm text-amber-700" *ngIf="o.payments.length">
+        O comprovativo anterior foi rejeitado. Submeta um novo.
+      </p>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Método</label>
+        <select formControlName="method" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <option value="MULTICAIXA_EXPRESS">Multicaixa Express</option>
+          <option value="TRANSFERENCIA">Transferência Bancária</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Referência da transação <span class="text-gray-400">(opcional se enviar o comprovativo)</span></label>
+        <input formControlName="transactionRef" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Comprovativo <span class="text-gray-400">(imagem ou PDF, opcional se indicar a referência)</span></label>
+        <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" (change)="onFileSelected($event)" class="w-full text-sm" />
+      </div>
+
+      <p *ngIf="paymentError" class="text-sm text-red-600">{{ paymentError }}</p>
+
+      <button
+        type="submit"
+        [disabled]="paymentSubmitting"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ paymentSubmitting ? 'A submeter...' : 'Submeter Pagamento' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Guias de transporte (quando já existirem) -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="o.shipments.length">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Transporte</h3>
+    <div *ngFor="let s of o.shipments" class="text-sm text-gray-600 py-1.5 border-b last:border-0">
+      Guia #{{ s.id }} — {{ shipmentStatusLabel(s.shipmentStatus) }}
+      <span *ngIf="s.deliveredAt"> · entregue em {{ s.deliveredAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+  </div>
+
+  <!-- Histórico -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Histórico</h3>
+    <div *ngFor="let h of o.history" class="text-sm py-1.5 border-b last:border-0">
+      <span class="text-gray-700">{{ h.status }}</span>
+      <span class="text-gray-400"> · {{ h.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+      <p *ngIf="h.note" class="text-xs text-gray-400">{{ h.note }}</p>
+    </div>
+  </div>
+
+  <button
+    *ngIf="canCancel"
+    type="button"
+    (click)="cancelOrder()"
+    [disabled]="cancelling"
+    class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-60"
+  >
+    {{ cancelling ? 'A cancelar...' : 'Cancelar encomenda' }}
+  </button>
+</div>

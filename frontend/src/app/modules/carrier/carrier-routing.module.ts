@@ -3,8 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
-import { ComingSoonComponent } from '../../shared/components/coming-soon/coming-soon.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { ShipmentsListComponent } from './shipments/shipments-list.component';
+import { ShipmentDetailComponent } from './shipments/shipment-detail/shipment-detail.component';
 
 const navItems: ShellNavItem[] = [{ label: 'Guias de Transporte', route: 'shipments' }];
 
@@ -16,7 +17,8 @@ const routes: Routes = [
     data: { title: 'Painel da Transportadora', navItems, roles: ['CARRIER'] },
     children: [
       { path: '', redirectTo: 'shipments', pathMatch: 'full' },
-      { path: 'shipments', component: ComingSoonComponent, data: { pageTitle: 'Guias de Transporte' } },
+      { path: 'shipments', component: ShipmentsListComponent },
+      { path: 'shipments/:id', component: ShipmentDetailComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

@@ -1,0 +1,119 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="shipment as s" class="max-w-3xl space-y-6">
+  <a routerLink="/carrier/shipments" class="text-sm text-brand-600 hover:underline">← Voltar às guias</a>
+
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800">Guia #{{ s.id }}</h2>
+      <p class="text-sm text-gray-500" *ngIf="s.poNumber">{{ s.poNumber }}</p>
+    </div>
+    <app-status-badge [label]="statusLabel(s.shipmentStatus)" [variant]="statusVariant(s.shipmentStatus)"></app-status-badge>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Ponto A — Recolha</h3>
+      <p class="text-sm text-gray-600">{{ s.pickup.street }}</p>
+      <p class="text-sm text-gray-600">
+        {{ s.pickup.city }}<span *ngIf="s.pickup.municipality">, {{ s.pickup.municipality }}</span>
+      </p>
+      <p class="text-xs text-gray-400 mt-1" *ngIf="s.pickup.referencePoint">{{ s.pickup.referencePoint }}</p>
+      <p class="text-sm text-gray-500 mt-2" *ngIf="s.scheduledPickupAt">
+        Agendada: {{ s.scheduledPickupAt | date: 'dd/MM/yyyy HH:mm' }}
+      </p>
+    </div>
+
+    <div class="bg-white border rounded-lg p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Ponto B — Entrega</h3>
+      <p class="text-sm text-gray-600">{{ s.dropoff.street }}</p>
+      <p class="text-sm text-gray-600">
+        {{ s.dropoff.city }}<span *ngIf="s.dropoff.municipality">, {{ s.dropoff.municipality }}</span>
+      </p>
+      <p class="text-xs text-gray-400 mt-1" *ngIf="s.dropoff.referencePoint">{{ s.dropoff.referencePoint }}</p>
+      <p class="text-sm text-gray-500 mt-2" *ngIf="s.deliveryDate">
+        {{ s.deliveryDate }}<span *ngIf="s.deliveryWindow"> · {{ s.deliveryWindow }}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Carga</h3>
+    <div *ngFor="let i of s.items" class="text-sm text-gray-600 py-1.5 border-b last:border-0">
+      {{ i.productName }} — {{ i.quantity }} {{ i.unit }}
+    </div>
+  </div>
+
+  <!-- Ações da viagem -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="actions.length">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Atualizar viagem</h3>
+
+    <p *ngIf="pickupBlocked" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-3">
+      A mercadoria ainda não está pronta para recolha. O fornecedor ainda a está a preparar.
+    </p>
+    <p *ngIf="actionError" class="text-sm text-red-600 mb-3">{{ actionError }}</p>
+
+    <div class="flex flex-wrap gap-3">
+      <button
+        *ngFor="let a of actions"
+        type="button"
+        (click)="runAction(a)"
+        [disabled]="actionLoading || (a.status === 'COLLECTED' && pickupBlocked)"
+        class="disabled:opacity-50 text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+        [ngClass]="a.danger ? 'bg-white border border-red-300 text-red-600 hover:bg-red-50' : 'bg-brand-600 hover:bg-brand-700 text-white'"
+      >
+        {{ a.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Concluir entrega com prova (POD) -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="canDeliver">
+    <h3 class="text-sm font-semibold text-gray-700 mb-1">Concluir entrega</h3>
+    <p class="text-sm text-gray-500 mb-4">Envie a prova de entrega: foto da carga entregue e/ou assinatura.</p>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Foto da carga entregue</label>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="environment"
+          (change)="onPhotoSelected($event)"
+          class="w-full text-sm"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Assinatura <span class="text-gray-400">(imagem, opcional)</span></label>
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onSignatureSelected($event)" class="w-full text-sm" />
+      </div>
+
+      <p *ngIf="deliverError" class="text-sm text-red-600">{{ deliverError }}</p>
+
+      <button
+        type="button"
+        (click)="deliver()"
+        [disabled]="delivering"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ delivering ? 'A enviar...' : 'Confirmar entrega' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Prova já registada -->
+  <div class="bg-white border rounded-lg p-5" *ngIf="s.shipmentStatus === 'DELIVERED'">
+    <h3 class="text-sm font-semibold text-gray-700 mb-2">Entrega concluída</h3>
+    <p class="text-sm text-gray-600" *ngIf="s.deliveredAt">Entregue em {{ s.deliveredAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+    <div class="flex gap-4 mt-2">
+      <button *ngIf="s.podPhotoUrl" type="button" (click)="files.open(s.podPhotoUrl)" class="text-sm text-brand-600 hover:underline">
+        Ver foto
+      </button>
+      <button *ngIf="s.podSignatureUrl" type="button" (click)="files.open(s.podSignatureUrl)" class="text-sm text-brand-600 hover:underline">
+        Ver assinatura
+      </button>
+    </div>
+  </div>
+</div>

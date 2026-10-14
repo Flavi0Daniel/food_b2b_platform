@@ -1,0 +1,66 @@
+<div class="pb-24">
+  <!-- pb-24: espaço para a barra do carrinho fixa no fundo não tapar o último produto -->
+
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-base font-semibold text-gray-800">Catálogo</h2>
+    <select
+      [(ngModel)]="selectedCategoryId"
+      class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+    >
+      <option [ngValue]="null">Todas as categorias</option>
+      <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+  <div *ngIf="!loading && !filteredProducts.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+    Sem produtos disponíveis de momento.
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let p of filteredProducts" class="bg-white border rounded-lg p-4 flex flex-col">
+      <p class="text-xs text-gray-400 mb-1">{{ p.categoryName }}</p>
+      <p class="text-sm font-medium text-gray-800 mb-1">{{ p.name }}</p>
+      <p class="text-sm text-brand-700 font-semibold mb-3">
+        {{ p.sellPrice | number: '1.0-2' }} Kz <span class="text-xs text-gray-400 font-normal">/ {{ p.baseUnit }}</span>
+      </p>
+
+      <div class="mt-auto flex items-center gap-2">
+        <input
+          type="number"
+          min="0.5"
+          step="0.5"
+          [(ngModel)]="quantities[p.id]"
+          class="w-20 rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+        />
+        <button
+          type="button"
+          (click)="addToCart(p)"
+          class="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium py-2 rounded-md transition-colors"
+        >
+          Adicionar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Barra do carrinho, fixa no fundo do ecrã -->
+<div
+  *ngIf="(cart.items$ | async)?.length"
+  class="fixed bottom-0 left-60 right-0 bg-white border-t shadow-lg px-6 py-4 flex items-center justify-between"
+>
+  <div class="text-sm text-gray-700">
+    <span class="font-medium">{{ cart.itemCount }}</span> item(ns) no carrinho ·
+    <span class="font-semibold text-brand-700">{{ cart.total | number: '1.0-2' }} Kz</span>
+  </div>
+  <button
+    type="button"
+    (click)="goToCheckout()"
+    class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-6 py-2.5 rounded-md transition-colors"
+  >
+    Finalizar Encomenda
+  </button>
+</div>

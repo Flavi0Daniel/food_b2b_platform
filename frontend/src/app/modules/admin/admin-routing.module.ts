@@ -6,6 +6,9 @@ import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shel
 import { ComingSoonComponent } from '../../shared/components/coming-soon/coming-soon.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { OrdersListComponent } from './orders/orders-list.component';
+import { OrderDetailComponent } from './orders/order-detail/order-detail.component';
+import { PaymentsQueueComponent } from './payments/payments-queue.component';
 
 const navItems: ShellNavItem[] = [
   { label: 'Dashboard', route: 'dashboard' },
@@ -26,8 +29,9 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'orders', component: ComingSoonComponent, data: { pageTitle: 'Encomendas' } },
-      { path: 'payments', component: ComingSoonComponent, data: { pageTitle: 'Validação de Pagamentos' } },
+      { path: 'orders', component: OrdersListComponent },
+      { path: 'orders/:id', component: OrderDetailComponent },
+      { path: 'payments', component: PaymentsQueueComponent },
       { path: 'products', component: ComingSoonComponent, data: { pageTitle: 'Produtos e Categorias' } },
       { path: 'suppliers', component: ComingSoonComponent, data: { pageTitle: 'Fornecedores' } },
       { path: 'carriers', component: ComingSoonComponent, data: { pageTitle: 'Transportadoras' } },

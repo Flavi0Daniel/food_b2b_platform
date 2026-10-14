@@ -1,0 +1,68 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="po as o" class="max-w-3xl space-y-6">
+  <a routerLink="/supplier/purchase-orders" class="text-sm text-brand-600 hover:underline">← Voltar às ordens de compra</a>
+
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800">{{ o.poNumber }}</h2>
+      <p class="text-sm text-gray-500">Recebida em {{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+    <app-status-badge [label]="statusLabel(o.status)" [variant]="statusVariant(o.status)"></app-status-badge>
+  </div>
+
+  <div class="bg-white border rounded-lg p-5" *ngIf="o.pickupScheduledAt || o.notes">
+    <p class="text-sm text-gray-600" *ngIf="o.pickupScheduledAt">
+      Recolha prevista: <span class="font-medium">{{ o.pickupScheduledAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+    </p>
+    <p class="text-sm text-gray-600 mt-1" *ngIf="o.notes">Notas: {{ o.notes }}</p>
+  </div>
+
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Mercadoria a preparar</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-500 border-b">
+          <th class="py-2 font-medium">Produto</th>
+          <th class="py-2 font-medium text-right">Quantidade</th>
+          <th class="py-2 font-medium text-right">Preço de custo</th>
+          <th class="py-2 font-medium text-right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of o.items" class="border-b last:border-0">
+          <td class="py-2 text-gray-700">{{ i.productName }}</td>
+          <td class="py-2 text-right text-gray-600">{{ i.quantity }} {{ i.unit }}</td>
+          <td class="py-2 text-right text-gray-600">{{ i.costPrice | number: '1.0-2' }} Kz</td>
+          <td class="py-2 text-right text-gray-700 font-medium">{{ i.quantity * i.costPrice | number: '1.0-2' }} Kz</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="flex items-center justify-between pt-3 mt-2 border-t">
+      <span class="text-sm font-medium text-gray-700">Total</span>
+      <span class="text-base font-semibold text-brand-700">{{ o.totalCost | number: '1.0-2' }} Kz</span>
+    </div>
+  </div>
+
+  <div class="bg-white border rounded-lg p-5" *ngIf="nextStep as step; else noAction">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Próximo passo</h3>
+    <p *ngIf="actionError" class="text-sm text-red-600 mb-3">{{ actionError }}</p>
+    <button
+      type="button"
+      (click)="advance()"
+      [disabled]="updating"
+      class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+    >
+      {{ updating ? 'A atualizar...' : step.label }}
+    </button>
+  </div>
+
+  <ng-template #noAction>
+    <p class="text-sm text-gray-500" *ngIf="o.status === 'READY_FOR_PICKUP'">
+      Mercadoria pronta. Aguarde a recolha pela transportadora.
+    </p>
+    <p class="text-sm text-gray-500" *ngIf="o.status === 'COLLECTED'">Mercadoria recolhida pela transportadora.</p>
+    <p class="text-sm text-red-600" *ngIf="o.status === 'CANCELLED'">Esta ordem de compra foi cancelada.</p>
+  </ng-template>
+</div>

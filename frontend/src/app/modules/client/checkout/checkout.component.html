@@ -1,0 +1,73 @@
+<div class="max-w-3xl grid md:grid-cols-5 gap-6">
+  <!-- Formulário -->
+  <form [formGroup]="form" (ngSubmit)="submit()" class="md:col-span-3 bg-white border rounded-lg p-6 space-y-4">
+    <h2 class="text-base font-semibold text-gray-800">Dados da entrega</h2>
+
+    <div *ngIf="!addressesLoading && !addresses.length" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+      Ainda não tem nenhuma morada registada.
+      <a routerLink="/client/addresses" class="font-medium underline">Adicionar morada</a>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Morada de entrega</label>
+      <select formControlName="deliveryAddressId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <option [ngValue]="null" disabled>Escolha uma morada</option>
+        <option *ngFor="let a of addresses" [ngValue]="a.id">{{ a.label || a.street }} — {{ a.city }}</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Data de entrega pretendida</label>
+      <input type="date" [attr.min]="minDate" formControlName="requestedDeliveryDate" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Janela horária <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="deliveryWindow" placeholder="Ex: 08h-10h" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Notas <span class="text-gray-400">(opcional)</span></label>
+      <textarea formControlName="notes" rows="3" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+    </div>
+
+    <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+    <button
+      type="submit"
+      [disabled]="submitting"
+      class="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium py-2.5 rounded-md transition-colors"
+    >
+      {{ submitting ? 'A criar encomenda...' : 'Confirmar Encomenda' }}
+    </button>
+
+    <p class="text-xs text-gray-400 text-center">
+      Depois de confirmar, vai poder submeter o comprovativo de pagamento.
+    </p>
+  </form>
+
+  <!-- Resumo do carrinho -->
+  <div class="md:col-span-2 bg-white border rounded-lg p-6 h-fit">
+    <h2 class="text-base font-semibold text-gray-800 mb-4">Resumo</h2>
+
+    <div class="space-y-3 mb-4">
+      <div *ngFor="let item of cart.items$ | async" class="flex items-start justify-between text-sm">
+        <div>
+          <p class="text-gray-700">{{ item.productName }}</p>
+          <p class="text-gray-400 text-xs">{{ item.quantity }} {{ item.unit }} × {{ item.sellPrice | number: '1.0-2' }} Kz</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-700 font-medium">{{ item.quantity * item.sellPrice | number: '1.0-2' }} Kz</span>
+          <button type="button" (click)="removeItem(item.productId)" class="text-red-500 hover:text-red-700 text-xs">
+            remover
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t pt-3 flex items-center justify-between">
+      <span class="text-sm font-medium text-gray-700">Total</span>
+      <span class="text-lg font-semibold text-brand-700">{{ cart.total | number: '1.0-2' }} Kz</span>
+    </div>
+  </div>
+</div>
