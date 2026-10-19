@@ -29,4 +29,13 @@ export class AddressesService {
   create(dto: CreateAddressDto): Observable<Address> {
     return this.http.post<ApiSuccess<Address>>(this.apiUrl, dto).pipe(map((res) => res.data));
   }
+
+  /** ADMIN/OPERATOR: moradas de outro utilizador (ex: morada de recolha de um fornecedor). */
+  listForUser(userId: number): Observable<Address[]> {
+    return this.http.get<ApiSuccess<Address[]>>(this.apiUrl, { params: { userId } }).pipe(map((res) => res.data));
+  }
+
+  createForUser(userId: number, dto: CreateAddressDto): Observable<Address> {
+    return this.http.post<ApiSuccess<Address>>(this.apiUrl, { ...dto, userId }).pipe(map((res) => res.data));
+  }
 }

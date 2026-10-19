@@ -1,0 +1,25 @@
+PATCH DO FRONTEND — gestão do Admin: Produtos e Categorias, Fornecedores, Transportadoras, Utilizadores
+
+Como aplicar (na pasta do teu projeto, a que tem o package.json):
+
+  1. Se usas git, faz commit do estado atual antes (assim vês exatamente o que muda).
+  2. unzip -o /caminho/para/frontend-patch-admin.zip
+  3. rm LEIA-ME.txt
+  4. O "ng serve" recompila sozinho. Não há script a correr desta vez.
+
+Ficheiros NOVOS:
+  core/utils/api-error.ts                       (mensagens de erro com detalhe por campo)
+  core/models/user-labels.ts                    (rótulos de perfis/estados)
+  modules/admin/products/products-admin.component.{ts,html}
+  modules/admin/users/users-admin.component.{ts,html}
+  modules/admin/suppliers/supplier-detail.component.{ts,html}
+
+Ficheiros SUBSTITUÍDOS (já existiam):
+  core/services/products.service.ts            -> só foram ACRESCENTADOS 4 métodos (createCategory, create, setAvailability, setPrice)
+  core/services/addresses.service.ts           -> só foram ACRESCENTADOS 2 métodos (listForUser, createForUser)
+  core/services/supplier-products.service.ts   -> só foram ACRESCENTADOS 2 métodos (listBySupplier, upsert)
+  modules/admin/admin-routing.module.ts        -> as 4 rotas "Em construção" passam a páginas reais
+  modules/admin/admin.module.ts                -> declara os 3 componentes novos
+
+Se usas git: "git diff" nos 3 serviços deve mostrar apenas linhas ACRESCENTADAS. Se mostrar
+linhas removidas, os teus ficheiros eram diferentes do que eu esperava — diz-me antes de avançares.

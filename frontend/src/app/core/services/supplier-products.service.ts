@@ -6,6 +6,11 @@ import { environment } from '../../../environments/environment';
 import { ApiSuccess } from '../models/api-response.model';
 import { SupplierProduct } from '../models/supplier-product.model';
 
+export interface UpsertSupplierProductDto {
+  costPrice: number;
+  isActive: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SupplierProductsService {
   private readonly apiUrl = `${environment.apiUrl}/supplier-products`;
@@ -17,5 +22,19 @@ export class SupplierProductsService {
     return this.http
       .get<ApiSuccess<SupplierProduct[]>>(this.apiUrl, { params: { productId } })
       .pipe(map((res) => res.data.filter((sp) => sp.isActive)));
+  }
+
+  /** ADMIN/OPERATOR: tabela de preços completa de um fornecedor (inclui produtos inativos). */
+  listBySupplier(supplierId: number): Observable<SupplierProduct[]> {
+    return this.http
+      .get<ApiSuccess<SupplierProduct[]>>(this.apiUrl, { params: { supplierId } })
+      .pipe(map((res) => res.data));
+  }
+
+  /** Só ADMIN: define ou atualiza o preço de custo acordado com um fornecedor para um produto. */
+  upsert(supplierId: number, productId: number, dto: UpsertSupplierProductDto): Observable<SupplierProduct> {
+    return this.http
+      .put<ApiSuccess<SupplierProduct>>(`${this.apiUrl}/${supplierId}/${productId}`, dto)
+      .pipe(map((res) => res.data));
   }
 }

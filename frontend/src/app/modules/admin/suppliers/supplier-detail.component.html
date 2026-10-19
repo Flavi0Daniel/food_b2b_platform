@@ -1,0 +1,149 @@
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+<div *ngIf="supplier as s" class="max-w-4xl space-y-6">
+  <a routerLink="/admin/suppliers" class="text-sm text-brand-600 hover:underline">← Voltar aos fornecedores</a>
+
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800">{{ s.companyName || s.name }}</h2>
+      <p class="text-sm text-gray-500">{{ s.name }} · {{ s.email }}<span *ngIf="s.phone"> · {{ s.phone }}</span></p>
+    </div>
+    <app-status-badge [label]="statusLabels[s.status]" [variant]="statusVariant(s.status)"></app-status-badge>
+  </div>
+
+  <p *ngIf="!addresses.length" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+    Este fornecedor ainda não tem morada de recolha. Sem ela não é possível aprovar encomendas com os seus produtos.
+  </p>
+
+  <!-- Moradas -->
+  <div class="bg-white border rounded-lg p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold text-gray-700">Morada de recolha</h3>
+      <button type="button" (click)="showAddressForm = !showAddressForm" class="text-xs font-medium text-brand-600 hover:underline">
+        {{ showAddressForm ? 'Cancelar' : '+ Nova morada' }}
+      </button>
+    </div>
+
+    <div *ngFor="let a of addresses" class="py-2 border-b last:border-0 text-sm">
+      <p class="text-gray-800">
+        {{ a.label || a.street }}
+        <span *ngIf="a.isDefault" class="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full ml-2">Predefinida</span>
+      </p>
+      <p class="text-gray-600">{{ a.street }}, {{ a.city }}<span *ngIf="a.municipality">, {{ a.municipality }}</span></p>
+      <p class="text-xs text-gray-400" *ngIf="a.referencePoint">{{ a.referencePoint }}</p>
+    </div>
+
+    <form *ngIf="showAddressForm" [formGroup]="addressForm" (ngSubmit)="saveAddress()" class="mt-4 pt-4 border-t space-y-4">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-gray-400">(opcional)</span></label>
+          <input formControlName="label" placeholder="Ex: Armazém Viana" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Rua / Endereço</label>
+          <input formControlName="street" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+          <input formControlName="city" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Município <span class="text-gray-400">(opcional)</span></label>
+          <input formControlName="municipality" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de referência <span class="text-gray-400">(opcional)</span></label>
+        <input formControlName="referencePoint" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" formControlName="isDefault" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+        Usar como morada de recolha predefinida
+      </label>
+      <p *ngIf="addressError" class="text-sm text-red-600">{{ addressError }}</p>
+      <button
+        type="submit"
+        [disabled]="addressSaving"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ addressSaving ? 'A guardar...' : 'Guardar morada' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Tabela de preços de custo -->
+  <div class="bg-white border rounded-lg p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-1">Preços de custo acordados</h3>
+    <p class="text-sm text-gray-500 mb-4">É daqui que o Admin escolhe fornecedor ao aprovar uma encomenda. Só aparecem produtos ativos.</p>
+
+    <div *ngIf="!prices.length" class="text-sm text-gray-400 mb-4">Ainda não há preços definidos para este fornecedor.</div>
+
+    <table *ngIf="prices.length" class="w-full text-sm mb-4">
+      <thead>
+        <tr class="text-left text-gray-500 border-b">
+          <th class="py-2 font-medium">Produto</th>
+          <th class="py-2 font-medium">Unidade</th>
+          <th class="py-2 font-medium text-right">Custo (Kz)</th>
+          <th class="py-2 font-medium">Estado</th>
+          <th class="py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of prices" class="border-b last:border-0">
+          <td class="py-2">
+            <p class="text-gray-800">{{ row.productName }}</p>
+            <p class="text-xs text-gray-400">{{ row.categoryName }}</p>
+          </td>
+          <td class="py-2 text-gray-600">{{ row.baseUnit }}</td>
+          <td class="py-2 text-right text-gray-700">{{ row.costPrice | number: '1.0-2' }}</td>
+          <td class="py-2">
+            <app-status-badge [label]="row.isActive ? 'Ativo' : 'Inativo'" [variant]="row.isActive ? 'green' : 'gray'"></app-status-badge>
+          </td>
+          <td class="py-2 text-right space-x-3">
+            <button *ngIf="canEdit" type="button" (click)="editPrice(row)" class="text-xs font-medium text-brand-600 hover:underline">Editar</button>
+            <button
+              *ngIf="canEdit"
+              type="button"
+              (click)="toggleActive(row)"
+              [disabled]="busyPriceProductId === row.productId"
+              class="text-xs font-medium text-gray-600 hover:underline disabled:opacity-60"
+            >
+              {{ row.isActive ? 'Desativar' : 'Ativar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <form *ngIf="canEdit" [formGroup]="priceForm" (ngSubmit)="savePrice()" class="pt-4 border-t space-y-4">
+      <p class="text-sm font-medium text-gray-700">Definir ou atualizar um preço</p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Produto</label>
+          <select formControlName="productId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+            <option [ngValue]="null" disabled>Escolha o produto</option>
+            <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }} ({{ p.baseUnit }})</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Custo (Kz)</label>
+          <input type="number" min="0" step="0.01" formControlName="costPrice" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+      </div>
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" formControlName="isActive" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+        Produto ativo para este fornecedor
+      </label>
+      <p *ngIf="priceError" class="text-sm text-red-600">{{ priceError }}</p>
+      <button
+        type="submit"
+        [disabled]="priceSaving"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ priceSaving ? 'A guardar...' : 'Guardar preço' }}
+      </button>
+    </form>
+    <p *ngIf="!canEdit" class="text-xs text-gray-400">Só o Administrador pode alterar preços de custo.</p>
+  </div>
+</div>

@@ -1,0 +1,154 @@
+<div class="space-y-8">
+  <p *ngIf="loading" class="text-sm text-gray-500">A carregar...</p>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+  <p *ngIf="actionError" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{{ actionError }}</p>
+  <p *ngIf="!canEdit && !loading" class="text-xs text-gray-400">Só o Administrador pode alterar categorias, produtos e preços.</p>
+
+  <!-- Categorias -->
+  <section>
+    <h2 class="text-base font-semibold text-gray-800 mb-3">Categorias</h2>
+    <div class="bg-white border rounded-lg p-5">
+      <div class="flex flex-wrap gap-2" [class.mb-4]="canEdit">
+        <span *ngFor="let c of categories" class="text-xs bg-gray-100 text-gray-700 rounded-full px-3 py-1">{{ c.name }}</span>
+        <span *ngIf="!categories.length && !loading" class="text-sm text-gray-400">Ainda não há categorias.</span>
+      </div>
+
+      <div *ngIf="canEdit" class="flex gap-2">
+        <input
+          [(ngModel)]="newCategoryName"
+          (keyup.enter)="createCategory()"
+          placeholder="Nova categoria (ex: Peixes)"
+          class="flex-1 rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+        />
+        <button
+          type="button"
+          (click)="createCategory()"
+          [disabled]="savingCategory"
+          class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+        >
+          {{ savingCategory ? 'A adicionar...' : 'Adicionar' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Produtos -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-semibold text-gray-800">Produtos</h2>
+      <button
+        *ngIf="canEdit"
+        type="button"
+        (click)="showProductForm = !showProductForm"
+        class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md transition-colors"
+      >
+        {{ showProductForm ? 'Cancelar' : '+ Novo produto' }}
+      </button>
+    </div>
+
+    <form *ngIf="showProductForm" [formGroup]="productForm" (ngSubmit)="saveProduct()" class="bg-white border rounded-lg p-6 space-y-4 mb-5">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+          <input formControlName="name" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+          <select formControlName="categoryId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+            <option [ngValue]="null" disabled>Escolha a categoria</option>
+            <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Unidade de venda</label>
+          <select formControlName="baseUnit" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+            <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Preço de venda (Kz) <span class="text-gray-400">(opcional agora)</span></label>
+          <input type="number" min="0" step="0.01" formControlName="sellPrice" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição <span class="text-gray-400">(opcional)</span></label>
+        <textarea formControlName="description" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+      </div>
+
+      <p *ngIf="productError" class="text-sm text-red-600">{{ productError }}</p>
+      <p class="text-xs text-gray-400">O produto nasce indisponível; só pode ser disponibilizado depois de ter preço de venda.</p>
+
+      <button
+        type="submit"
+        [disabled]="savingProduct"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ savingProduct ? 'A criar...' : 'Criar produto' }}
+      </button>
+    </form>
+
+    <div *ngIf="!loading && !products.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+      Ainda não há produtos.
+    </div>
+
+    <div *ngIf="products.length" class="bg-white border rounded-lg overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-500 border-b bg-gray-50">
+            <th class="py-3 px-4 font-medium">Produto</th>
+            <th class="py-3 px-4 font-medium">Unidade</th>
+            <th class="py-3 px-4 font-medium">Preço de venda (Kz)</th>
+            <th class="py-3 px-4 font-medium">Estado</th>
+            <th class="py-3 px-4"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of products" class="border-b last:border-0">
+            <td class="py-3 px-4">
+              <p class="text-gray-800 font-medium">{{ p.name }}</p>
+              <p class="text-xs text-gray-400">{{ p.categoryName }}</p>
+            </td>
+            <td class="py-3 px-4 text-gray-600">{{ p.baseUnit }}</td>
+            <td class="py-3 px-4">
+              <div *ngIf="canEdit; else priceReadonly" class="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [(ngModel)]="priceDrafts[p.id]"
+                  class="w-28 rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+                />
+                <button
+                  type="button"
+                  (click)="savePrice(p)"
+                  [disabled]="busyProductId === p.id"
+                  class="text-xs font-medium text-brand-600 hover:underline disabled:opacity-60"
+                >
+                  Guardar
+                </button>
+              </div>
+              <ng-template #priceReadonly>
+                <span class="text-gray-700">{{ p.sellPrice !== null ? (p.sellPrice | number: '1.0-2') : '—' }}</span>
+              </ng-template>
+            </td>
+            <td class="py-3 px-4">
+              <app-status-badge [label]="p.isAvailable ? 'Disponível' : 'Indisponível'" [variant]="p.isAvailable ? 'green' : 'gray'"></app-status-badge>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button
+                *ngIf="canEdit"
+                type="button"
+                (click)="toggleAvailability(p)"
+                [disabled]="busyProductId === p.id"
+                class="text-xs font-medium text-brand-600 hover:underline disabled:opacity-60"
+              >
+                {{ p.isAvailable ? 'Tornar indisponível' : 'Disponibilizar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

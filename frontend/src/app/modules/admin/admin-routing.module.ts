@@ -3,12 +3,14 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
-import { ComingSoonComponent } from '../../shared/components/coming-soon/coming-soon.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OrdersListComponent } from './orders/orders-list.component';
 import { OrderDetailComponent } from './orders/order-detail/order-detail.component';
 import { PaymentsQueueComponent } from './payments/payments-queue.component';
+import { ProductsAdminComponent } from './products/products-admin.component';
+import { UsersAdminComponent, UsersPageConfig } from './users/users-admin.component';
+import { SupplierDetailComponent } from './suppliers/supplier-detail.component';
 
 const navItems: ShellNavItem[] = [
   { label: 'Dashboard', route: 'dashboard' },
@@ -19,6 +21,24 @@ const navItems: ShellNavItem[] = [
   { label: 'Transportadoras', route: 'carriers' },
   { label: 'Utilizadores', route: 'users' },
 ];
+
+// A mesma página (UsersAdminComponent) serve Fornecedores, Transportadoras e Utilizadores,
+// configurada por `data.config`.
+const suppliersConfig: UsersPageConfig = {
+  title: 'Fornecedores',
+  role: 'SUPPLIER',
+  createRoles: ['SUPPLIER'],
+  detailBase: '/admin/suppliers',
+};
+const carriersConfig: UsersPageConfig = {
+  title: 'Transportadoras',
+  role: 'CARRIER',
+  createRoles: ['CARRIER'],
+};
+const usersConfig: UsersPageConfig = {
+  title: 'Utilizadores',
+  createRoles: ['OPERATOR', 'SUPPLIER', 'CARRIER'],
+};
 
 const routes: Routes = [
   {
@@ -32,10 +52,11 @@ const routes: Routes = [
       { path: 'orders', component: OrdersListComponent },
       { path: 'orders/:id', component: OrderDetailComponent },
       { path: 'payments', component: PaymentsQueueComponent },
-      { path: 'products', component: ComingSoonComponent, data: { pageTitle: 'Produtos e Categorias' } },
-      { path: 'suppliers', component: ComingSoonComponent, data: { pageTitle: 'Fornecedores' } },
-      { path: 'carriers', component: ComingSoonComponent, data: { pageTitle: 'Transportadoras' } },
-      { path: 'users', component: ComingSoonComponent, data: { pageTitle: 'Utilizadores Internos' } },
+      { path: 'products', component: ProductsAdminComponent },
+      { path: 'suppliers', component: UsersAdminComponent, data: { config: suppliersConfig } },
+      { path: 'suppliers/:id', component: SupplierDetailComponent },
+      { path: 'carriers', component: UsersAdminComponent, data: { config: carriersConfig } },
+      { path: 'users', component: UsersAdminComponent, data: { config: usersConfig } },
       { path: 'profile', component: ProfileComponent },
     ],
   },

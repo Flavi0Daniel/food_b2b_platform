@@ -1,0 +1,124 @@
+<div class="flex items-center justify-between mb-5 gap-4 flex-wrap">
+  <h2 class="text-base font-semibold text-gray-800">{{ title }}</h2>
+
+  <div class="flex items-center gap-3">
+    <select
+      *ngIf="!fixedRole"
+      [(ngModel)]="roleFilter"
+      (ngModelChange)="load()"
+      class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+    >
+      <option value="">Todos os perfis</option>
+      <option *ngFor="let r of filterRoles" [value]="r">{{ roleLabels[r] }}</option>
+    </select>
+
+    <button
+      *ngIf="canEdit"
+      type="button"
+      (click)="toggleForm()"
+      class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md transition-colors"
+    >
+      {{ showForm ? 'Cancelar' : '+ Nova conta' }}
+    </button>
+  </div>
+</div>
+
+<p *ngIf="!canEdit" class="text-xs text-gray-400 mb-4">Só o Administrador pode criar ou bloquear contas.</p>
+
+<form *ngIf="showForm" [formGroup]="form" (ngSubmit)="submit()" class="bg-white border rounded-lg p-6 space-y-4 mb-6">
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+      <input formControlName="name" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <input type="email" formControlName="email" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Senha inicial</label>
+      <input type="password" formControlName="password" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres. A pessoa pode alterá-la depois em "O meu perfil".</p>
+    </div>
+    <div *ngIf="createRoles.length > 1">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Perfil</label>
+      <select formControlName="role" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <option *ngFor="let r of createRoles" [value]="r">{{ roleLabels[r] }}</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Telefone <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="phone" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Empresa <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="companyName" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">NIF <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="taxId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+  </div>
+
+  <p *ngIf="formError" class="text-sm text-red-600">{{ formError }}</p>
+
+  <button
+    type="submit"
+    [disabled]="saving"
+    class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+  >
+    {{ saving ? 'A criar...' : 'Criar conta' }}
+  </button>
+</form>
+
+<div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+<p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+<p *ngIf="actionError" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">{{ actionError }}</p>
+
+<div *ngIf="!loading && !users.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+  Nenhum registo encontrado.
+</div>
+
+<div *ngIf="users.length" class="bg-white border rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-gray-500 border-b bg-gray-50">
+        <th class="py-3 px-4 font-medium">Nome</th>
+        <th class="py-3 px-4 font-medium">Email</th>
+        <th class="py-3 px-4 font-medium">Telefone</th>
+        <th *ngIf="!fixedRole" class="py-3 px-4 font-medium">Perfil</th>
+        <th class="py-3 px-4 font-medium">Estado</th>
+        <th class="py-3 px-4"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of users" class="border-b last:border-0">
+        <td class="py-3 px-4">
+          <p class="text-gray-800 font-medium">{{ u.companyName || u.name }}</p>
+          <p class="text-xs text-gray-400" *ngIf="u.companyName">{{ u.name }}</p>
+        </td>
+        <td class="py-3 px-4 text-gray-600">{{ u.email }}</td>
+        <td class="py-3 px-4 text-gray-600">{{ u.phone || '—' }}</td>
+        <td *ngIf="!fixedRole" class="py-3 px-4 text-gray-600">{{ roleLabels[u.role] }}</td>
+        <td class="py-3 px-4">
+          <app-status-badge [label]="statusLabels[u.status]" [variant]="statusVariant(u.status)"></app-status-badge>
+        </td>
+        <td class="py-3 px-4 text-right space-x-4">
+          <a *ngIf="detailBase" [routerLink]="[detailBase, u.id]" class="text-xs font-medium text-brand-600 hover:underline">
+            Preços e morada
+          </a>
+          <button
+            *ngIf="canEdit && u.role !== 'ADMIN'"
+            type="button"
+            (click)="toggleStatus(u)"
+            [disabled]="busyUserId === u.id"
+            class="text-xs font-medium hover:underline disabled:opacity-60"
+            [ngClass]="u.status === 'ACTIVE' ? 'text-red-600' : 'text-brand-600'"
+          >
+            {{ u.status === 'ACTIVE' ? 'Bloquear' : 'Ativar' }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
