@@ -1,7 +1,7 @@
 import { AppError } from '../../common/errors/AppError';
 import { isStaff, UserRole } from '../../common/types';
 import { productsRepository, ProductRecord } from './products.repository';
-import { CreateProductDto, ListProductsQuery } from './products.schema';
+import { CreateProductDto, ListProductsQuery, UpdateProductDto } from './products.schema';
 
 /** Fornecedores e transportadoras não precisam do preço de venda: nunca o recebem. */
 function forRole(product: ProductRecord, role: UserRole): Partial<ProductRecord> {
@@ -20,6 +20,18 @@ export const productsService = {
     const onlyAvailable = role === 'CLIENT' ? true : filters.onlyAvailable;
     const products = await productsRepository.list({ ...filters, onlyAvailable });
     return products.map((p) => forRole(p, role));
+  },
+
+  async updateProduct(id: number, dto: UpdateProductDto): Promise<ProductRecord> {
+    const product = await productsRepository.findById(id);
+    if (!product) throw AppError.notFound('Produto não encontrado');
+
+    if (dto.categoryId !== undefined && !(await productsRepository.categoryExists(dto.categoryId))) {
+      throw AppError.badRequest('Categoria inválida');
+    }
+
+    await productsRepository.update(id, dto);
+    return (await productsRepository.findById(id))!;
   },
 
   async setAvailability(id: number, isAvailable: boolean): Promise<ProductRecord> {

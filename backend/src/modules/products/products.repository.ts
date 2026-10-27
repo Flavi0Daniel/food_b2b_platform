@@ -1,5 +1,5 @@
 import { exec, query, queryOne } from '../../common/utils/db';
-import { CreateProductDto, ListProductsQuery } from './products.schema';
+import { CreateProductDto, ListProductsQuery, UpdateProductDto } from './products.schema';
 
 export interface ProductRecord {
   id: number;
@@ -48,6 +48,30 @@ export const productsRepository = {
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     return query<ProductRecord>(`${SELECT_PRODUCT} ${where} ORDER BY p.name ASC`, params);
+  },
+
+  /** Os nomes das colunas são fixos no código: nunca vêm do input do utilizador. */
+  async update(id: number, dto: UpdateProductDto): Promise<void> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    if (dto.name !== undefined) {
+      sets.push('name = ?');
+      params.push(dto.name);
+    }
+    if (dto.description !== undefined) {
+      sets.push('description = ?');
+      params.push(dto.description === '' ? null : dto.description);
+    }
+    if (dto.categoryId !== undefined) {
+      sets.push('category_id = ?');
+      params.push(dto.categoryId);
+    }
+    if (!sets.length) return;
+    await exec(`UPDATE products SET ${sets.join(', ')} WHERE id = ?`, [...params, id]);
+  },
+
+  categoryExists(id: number): Promise<{ id: number } | null> {
+    return queryOne<{ id: number }>('SELECT id FROM categories WHERE id = ?', [id]);
   },
 
   async updateAvailability(id: number, isAvailable: boolean): Promise<void> {

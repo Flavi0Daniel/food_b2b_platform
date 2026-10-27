@@ -14,6 +14,11 @@ export const productsController = {
     sendSuccess(res, products, 'Catálogo obtido com sucesso');
   }),
 
+  update: asyncHandler(async (req: Request, res: Response) => {
+    const product = await productsService.updateProduct(Number(req.params.id), req.body);
+    sendSuccess(res, product, 'Produto atualizado com sucesso');
+  }),
+
   updateAvailability: asyncHandler(async (req: Request, res: Response) => {
     const product = await productsService.setAvailability(Number(req.params.id), req.body.isAvailable);
     sendSuccess(res, product, 'Disponibilidade do produto atualizada');

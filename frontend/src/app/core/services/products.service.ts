@@ -14,6 +14,13 @@ export interface CreateProductDto {
   sellPrice?: number;
 }
 
+/** Só dados descritivos; unidade e preço de venda têm tratamento próprio. Descrição vazia limpa-a. */
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  categoryId?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
   private readonly productsUrl = `${environment.apiUrl}/products`;
@@ -34,6 +41,19 @@ export class ProductsService {
 
   createCategory(name: string): Observable<Category> {
     return this.http.post<ApiSuccess<Category>>(this.categoriesUrl, { name }).pipe(map((res) => res.data));
+  }
+
+  renameCategory(id: number, name: string): Observable<Category> {
+    return this.http.patch<ApiSuccess<Category>>(`${this.categoriesUrl}/${id}`, { name }).pipe(map((res) => res.data));
+  }
+
+  /** O backend só elimina categorias vazias (devolve 409 com a explicação se ainda tiver produtos). */
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<ApiSuccess<null>>(`${this.categoriesUrl}/${id}`).pipe(map((): void => undefined));
+  }
+
+  update(id: number, dto: UpdateProductDto): Observable<Product> {
+    return this.http.patch<ApiSuccess<Product>>(`${this.productsUrl}/${id}`, dto).pipe(map((res) => res.data));
   }
 
   create(dto: CreateProductDto): Observable<Product> {

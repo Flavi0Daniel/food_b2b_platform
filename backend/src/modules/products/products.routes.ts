@@ -9,6 +9,7 @@ import {
   productIdParamSchema,
   updateAvailabilitySchema,
   updatePriceSchema,
+  updateProductSchema,
 } from './products.schema';
 
 const router = Router();
@@ -20,6 +21,13 @@ router.get('/', validate({ query: listProductsQuerySchema }), productsController
 
 // Gestão do catálogo - só ADMIN
 router.post('/', authorize('ADMIN'), validate({ body: createProductSchema }), productsController.create);
+
+router.patch(
+  '/:id',
+  authorize('ADMIN'),
+  validate({ params: productIdParamSchema, body: updateProductSchema }),
+  productsController.update,
+);
 
 router.patch(
   '/:id/availability',

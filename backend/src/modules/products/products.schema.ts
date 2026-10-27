@@ -15,6 +15,18 @@ export const createProductSchema = z
   .strict();
 export type CreateProductDto = z.infer<typeof createProductSchema>;
 
+// Edição de dados descritivos. NÃO inclui a unidade (os preços de custo dos fornecedores foram
+// acordados nessa unidade) nem o preço (tem o seu próprio endpoint).
+export const updateProductSchema = z
+  .object({
+    name: z.string().trim().min(2).max(150).optional(),
+    description: z.string().trim().max(2000).optional(), // '' limpa a descrição
+    categoryId: z.number().int().positive().optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, { message: 'Indique pelo menos um campo a alterar' });
+export type UpdateProductDto = z.infer<typeof updateProductSchema>;
+
 export const updateAvailabilitySchema = z.object({ isAvailable: z.boolean() }).strict();
 export type UpdateAvailabilityDto = z.infer<typeof updateAvailabilitySchema>;
 

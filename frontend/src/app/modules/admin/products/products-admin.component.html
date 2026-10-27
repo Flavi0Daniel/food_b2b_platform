@@ -8,9 +8,40 @@
   <section>
     <h2 class="text-base font-semibold text-gray-800 mb-3">Categorias</h2>
     <div class="bg-white border rounded-lg p-5">
-      <div class="flex flex-wrap gap-2" [class.mb-4]="canEdit">
-        <span *ngFor="let c of categories" class="text-xs bg-gray-100 text-gray-700 rounded-full px-3 py-1">{{ c.name }}</span>
-        <span *ngIf="!categories.length && !loading" class="text-sm text-gray-400">Ainda não há categorias.</span>
+      <div class="divide-y" [class.mb-4]="canEdit">
+        <div *ngFor="let c of categories" class="py-2 flex items-center justify-between gap-3">
+          <ng-container *ngIf="editingCategoryId !== c.id; else categoryEditor">
+            <p class="text-sm text-gray-800">
+              {{ c.name }} <span class="text-xs text-gray-400">· {{ productCount(c.id) }} produto(s)</span>
+            </p>
+            <div *ngIf="canEdit" class="flex gap-4">
+              <button type="button" (click)="startCategoryEdit(c)" class="text-xs font-medium text-brand-600 hover:underline">Renomear</button>
+              <button
+                *ngIf="productCount(c.id) === 0"
+                type="button"
+                (click)="deleteCategory(c)"
+                [disabled]="busyCategoryId === c.id"
+                class="text-xs font-medium text-red-600 hover:underline disabled:opacity-60"
+              >
+                Eliminar
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #categoryEditor>
+            <input
+              [(ngModel)]="categoryNameDraft"
+              (keyup.enter)="saveCategory(c)"
+              (keyup.escape)="cancelCategoryEdit()"
+              class="flex-1 rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+            />
+            <div class="flex gap-3">
+              <button type="button" (click)="saveCategory(c)" [disabled]="busyCategoryId === c.id" class="text-xs font-medium text-brand-600 hover:underline disabled:opacity-60">Guardar</button>
+              <button type="button" (click)="cancelCategoryEdit()" class="text-xs text-gray-500 hover:underline">Cancelar</button>
+            </div>
+          </ng-template>
+        </div>
+        <p *ngIf="!categories.length && !loading" class="text-sm text-gray-400 py-2">Ainda não há categorias.</p>
       </div>
 
       <div *ngIf="canEdit" class="flex gap-2">
@@ -104,7 +135,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of products" class="border-b last:border-0">
+          <ng-container *ngFor="let p of products">
+          <tr class="border-b last:border-0">
             <td class="py-3 px-4">
               <p class="text-gray-800 font-medium">{{ p.name }}</p>
               <p class="text-xs text-gray-400">{{ p.categoryName }}</p>
@@ -135,7 +167,8 @@
             <td class="py-3 px-4">
               <app-status-badge [label]="p.isAvailable ? 'Disponível' : 'Indisponível'" [variant]="p.isAvailable ? 'green' : 'gray'"></app-status-badge>
             </td>
-            <td class="py-3 px-4 text-right">
+            <td class="py-3 px-4 text-right space-x-4">
+              <button *ngIf="canEdit" type="button" (click)="startProductEdit(p)" class="text-xs font-medium text-gray-600 hover:underline">Editar</button>
               <button
                 *ngIf="canEdit"
                 type="button"
@@ -147,6 +180,37 @@
               </button>
             </td>
           </tr>
+          <tr *ngIf="editingProductId === p.id" class="border-b bg-gray-50">
+            <td colspan="5" class="px-4 py-4">
+              <form [formGroup]="editForm" (ngSubmit)="saveProductEdit()" class="space-y-3">
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Nome</label>
+                    <input formControlName="name" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Categoria</label>
+                    <select formControlName="categoryId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                      <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Descrição</label>
+                  <textarea formControlName="description" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+                </div>
+                <p class="text-xs text-gray-400">A unidade e o preço de venda não se alteram aqui (os preços de custo dos fornecedores dependem da unidade).</p>
+                <p *ngIf="editError" class="text-sm text-red-600">{{ editError }}</p>
+                <div class="flex gap-3">
+                  <button type="submit" [disabled]="savingEdit" class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-xs font-medium px-4 py-2 rounded-md transition-colors">
+                    {{ savingEdit ? 'A guardar...' : 'Guardar alterações' }}
+                  </button>
+                  <button type="button" (click)="cancelProductEdit()" class="text-xs text-gray-500 hover:underline">Cancelar</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>
