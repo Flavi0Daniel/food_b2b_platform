@@ -15,6 +15,9 @@ export interface CreateAddressDto {
   isDefault?: boolean;
 }
 
+/** Todos opcionais: só se alteram os campos enviados. String vazia limpa os campos opcionais. */
+export type UpdateAddressDto = Partial<CreateAddressDto>;
+
 @Injectable({ providedIn: 'root' })
 export class AddressesService {
   private readonly apiUrl = `${environment.apiUrl}/addresses`;
@@ -28,6 +31,15 @@ export class AddressesService {
 
   create(dto: CreateAddressDto): Observable<Address> {
     return this.http.post<ApiSuccess<Address>>(this.apiUrl, dto).pipe(map((res) => res.data));
+  }
+
+  update(id: number, dto: UpdateAddressDto): Observable<Address> {
+    return this.http.patch<ApiSuccess<Address>>(`${this.apiUrl}/${id}`, dto).pipe(map((res) => res.data));
+  }
+
+  /** O backend recusa (409) moradas já usadas em encomendas ou entregas. */
+  remove(id: number): Observable<void> {
+    return this.http.delete<ApiSuccess<null>>(`${this.apiUrl}/${id}`).pipe(map((): void => undefined));
   }
 
   /** ADMIN/OPERATOR: moradas de outro utilizador (ex: morada de recolha de um fornecedor). */

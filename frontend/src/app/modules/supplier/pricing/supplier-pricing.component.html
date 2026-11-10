@@ -1,0 +1,85 @@
+<div class="max-w-3xl space-y-6">
+  <div>
+    <h2 class="text-base font-semibold text-gray-800">A minha tabela de preços</h2>
+    <p class="text-sm text-gray-500 mt-1">
+      São os preços de custo que a plataforma usa ao comprar-lhe mercadoria. As alterações valem para encomendas futuras;
+      as ordens de compra já emitidas mantêm o preço da altura. O Administrador também vê esta tabela.
+    </p>
+  </div>
+
+  <div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+  <div *ngIf="!loading && !errorMessage" class="bg-white border rounded-lg p-4 sm:p-5">
+    <p *ngIf="!prices.length" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+      Ainda não definiu nenhum preço. Sem preços, a plataforma não lhe consegue atribuir encomendas.
+    </p>
+
+    <div *ngIf="prices.length" class="overflow-x-auto mb-4">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-500 border-b">
+            <th class="py-2 font-medium">Produto</th>
+            <th class="py-2 font-medium">Unidade</th>
+            <th class="py-2 font-medium text-right">Custo (Kz)</th>
+            <th class="py-2 font-medium">Estado</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of prices" class="border-b last:border-0">
+            <td class="py-2">
+              <p class="text-gray-800">{{ row.productName }}</p>
+              <p class="text-xs text-gray-400">{{ row.categoryName }}</p>
+            </td>
+            <td class="py-2 text-gray-600">{{ row.baseUnit }}</td>
+            <td class="py-2 text-right text-gray-700">{{ row.costPrice | number: '1.0-2' }}</td>
+            <td class="py-2">
+              <app-status-badge [label]="row.isActive ? 'Ativo' : 'Inativo'" [variant]="row.isActive ? 'green' : 'gray'"></app-status-badge>
+            </td>
+            <td class="py-2 text-right space-x-3 whitespace-nowrap">
+              <button type="button" (click)="edit(row)" class="text-xs font-medium text-brand-600 hover:underline">Editar</button>
+              <button
+                type="button"
+                (click)="toggleActive(row)"
+                [disabled]="busyProductId === row.productId"
+                class="text-xs font-medium text-gray-600 hover:underline disabled:opacity-60"
+              >
+                {{ row.isActive ? 'Desativar' : 'Ativar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="pt-4 border-t space-y-4">
+      <p class="text-sm font-medium text-gray-700">Definir ou atualizar um preço</p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Produto</label>
+          <select formControlName="productId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+            <option [ngValue]="null" disabled>Escolha o produto</option>
+            <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }} ({{ p.baseUnit }})</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Custo (Kz)</label>
+          <input type="number" min="0" step="0.01" formControlName="costPrice" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+        </div>
+      </div>
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" formControlName="isActive" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+        Tenho este produto disponível para fornecer
+      </label>
+      <p *ngIf="formError" class="text-sm text-red-600">{{ formError }}</p>
+      <button
+        type="submit"
+        [disabled]="saving"
+        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+      >
+        {{ saving ? 'A guardar...' : 'Guardar preço' }}
+      </button>
+    </form>
+  </div>
+</div>

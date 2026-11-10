@@ -3,7 +3,7 @@
 
 <div *ngIf="order as o" class="max-w-4xl space-y-6">
   <!-- Cabeçalho -->
-  <div class="flex items-start justify-between">
+  <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <h2 class="text-lg font-semibold text-gray-800">{{ o.orderNumber }}</h2>
       <p class="text-sm text-gray-500">
@@ -42,7 +42,7 @@
   <!-- Itens -->
   <div class="bg-white border rounded-lg p-5">
     <h3 class="text-sm font-semibold text-gray-700 mb-3">Itens</h3>
-    <table class="w-full text-sm">
+    <div class="overflow-x-auto"><table class="w-full text-sm">
       <tbody>
         <tr *ngFor="let item of o.items" class="border-b last:border-0">
           <td class="py-2 text-gray-700">{{ item.productName }}</td>
@@ -51,7 +51,7 @@
           <td class="py-2 text-right text-gray-700 font-medium">{{ item.subtotal | number: '1.0-2' }} Kz</td>
         </tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="flex items-center justify-between pt-3 mt-2 border-t">
       <span class="text-sm font-medium text-gray-700">Total</span>
       <span class="text-base font-semibold text-brand-700">{{ o.totalAmount | number: '1.0-2' }} Kz</span>
@@ -123,7 +123,7 @@
     <p class="text-sm text-gray-500 mb-4">Atribua um fornecedor a cada item e escolha a transportadora.</p>
 
     <div class="space-y-3 mb-4">
-      <div *ngFor="let a of itemAssignments" class="flex items-center justify-between gap-4 py-2 border-b last:border-0">
+      <div *ngFor="let a of itemAssignments" class="flex flex-wrap items-center justify-between gap-2 sm:gap-4 py-2 border-b last:border-0">
         <span class="text-sm text-gray-700">{{ a.productName }}</span>
 
         <span *ngIf="a.loadingSuppliers" class="text-xs text-gray-400">A carregar fornecedores...</span>
@@ -135,7 +135,7 @@
         <select
           *ngIf="!a.loadingSuppliers && a.suppliers.length"
           [(ngModel)]="a.selectedSupplierId"
-          class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500 min-w-[16rem]"
+          class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500 w-full sm:w-auto sm:min-w-[16rem]"
         >
           <option [ngValue]="null" disabled>Escolha o fornecedor</option>
           <option *ngFor="let s of a.suppliers" [ngValue]="s.supplierId">

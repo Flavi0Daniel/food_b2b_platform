@@ -1,0 +1,101 @@
+<div class="max-w-2xl space-y-6">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 class="text-base font-semibold text-gray-800">Morada de recolha</h2>
+      <p class="text-sm text-gray-500 mt-1">
+        É aqui que a transportadora recolhe a mercadoria. Se tiver várias moradas, usa-se a predefinida.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="showForm ? cancel() : startCreate()"
+      class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md transition-colors"
+    >
+      {{ showForm ? 'Cancelar' : '+ Nova morada' }}
+    </button>
+  </div>
+
+  <form *ngIf="showForm" [formGroup]="form" (ngSubmit)="submit()" class="bg-white border rounded-lg p-4 sm:p-6 space-y-4">
+    <h3 class="text-sm font-semibold text-gray-700">{{ editingId === null ? 'Nova morada' : 'Editar morada' }}</h3>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-gray-400">(opcional)</span></label>
+        <input formControlName="label" placeholder="Ex: Armazém Viana" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Rua / Endereço</label>
+        <input formControlName="street" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+        <input formControlName="city" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Município <span class="text-gray-400">(opcional)</span></label>
+        <input formControlName="municipality" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de referência <span class="text-gray-400">(opcional)</span></label>
+      <input formControlName="referencePoint" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-gray-700">
+      <input type="checkbox" formControlName="isDefault" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+      Usar como morada de recolha predefinida
+    </label>
+
+    <p *ngIf="formError" class="text-sm text-red-600">{{ formError }}</p>
+
+    <button
+      type="submit"
+      [disabled]="saving"
+      class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+    >
+      {{ saving ? 'A guardar...' : 'Guardar morada' }}
+    </button>
+  </form>
+
+  <div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+  <p *ngIf="actionError" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{{ actionError }}</p>
+
+  <p *ngIf="!loading && !errorMessage && !addresses.length" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+    Ainda não tem morada de recolha. Sem ela, a plataforma não lhe consegue atribuir encomendas.
+  </p>
+
+  <div class="space-y-3">
+    <div *ngFor="let a of addresses" class="bg-white border rounded-lg p-4">
+      <div class="flex flex-wrap items-start justify-between gap-2 mb-1">
+        <p class="text-sm font-medium text-gray-800">{{ a.label || a.street }}</p>
+        <span *ngIf="a.isDefault" class="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">Predefinida</span>
+      </div>
+      <p class="text-sm text-gray-600">{{ a.street }}</p>
+      <p class="text-sm text-gray-500">{{ a.city }}<span *ngIf="a.municipality">, {{ a.municipality }}</span></p>
+      <p *ngIf="a.referencePoint" class="text-xs text-gray-400 mt-1">{{ a.referencePoint }}</p>
+
+      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+        <button type="button" (click)="startEdit(a)" class="text-xs font-medium text-brand-600 hover:underline">Editar</button>
+        <button
+          *ngIf="!a.isDefault"
+          type="button"
+          (click)="makeDefault(a)"
+          [disabled]="busyId === a.id"
+          class="text-xs font-medium text-gray-600 hover:underline disabled:opacity-60"
+        >
+          Tornar predefinida
+        </button>
+        <button
+          type="button"
+          (click)="remove(a)"
+          [disabled]="busyId === a.id"
+          class="text-xs font-medium text-red-600 hover:underline disabled:opacity-60"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -24,6 +24,18 @@ export class SupplierProductsService {
       .pipe(map((res) => res.data.filter((sp) => sp.isActive)));
   }
 
+  /** FORNECEDOR: a sua própria tabela de preços (inclui produtos inativos). */
+  listMine(): Observable<SupplierProduct[]> {
+    return this.http.get<ApiSuccess<SupplierProduct[]>>(this.apiUrl).pipe(map((res) => res.data));
+  }
+
+  /** FORNECEDOR: define/atualiza o seu preço de custo e ativa/desativa o produto. */
+  upsertMine(productId: number, dto: UpsertSupplierProductDto): Observable<SupplierProduct> {
+    return this.http
+      .put<ApiSuccess<SupplierProduct>>(`${this.apiUrl}/me/${productId}`, dto)
+      .pipe(map((res) => res.data));
+  }
+
   /** ADMIN/OPERATOR: tabela de preços completa de um fornecedor (inclui produtos inativos). */
   listBySupplier(supplierId: number): Observable<SupplierProduct[]> {
     return this.http

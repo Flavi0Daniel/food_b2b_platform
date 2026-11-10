@@ -4,7 +4,7 @@
 <div *ngIf="supplier as s" class="max-w-4xl space-y-6">
   <a routerLink="/admin/suppliers" class="text-sm text-brand-600 hover:underline">← Voltar aos fornecedores</a>
 
-  <div class="flex items-start justify-between">
+  <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <h2 class="text-lg font-semibold text-gray-800">{{ s.companyName || s.name }}</h2>
       <p class="text-sm text-gray-500">{{ s.name }} · {{ s.email }}<span *ngIf="s.phone"> · {{ s.phone }}</span></p>
@@ -79,7 +79,7 @@
 
     <div *ngIf="!prices.length" class="text-sm text-gray-400 mb-4">Ainda não há preços definidos para este fornecedor.</div>
 
-    <table *ngIf="prices.length" class="w-full text-sm mb-4">
+    <div class="overflow-x-auto"><table *ngIf="prices.length" class="w-full text-sm mb-4">
       <thead>
         <tr class="text-left text-gray-500 border-b">
           <th class="py-2 font-medium">Produto</th>
@@ -114,7 +114,7 @@
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></div>
 
     <form *ngIf="canEdit" [formGroup]="priceForm" (ngSubmit)="savePrice()" class="pt-4 border-t space-y-4">
       <p class="text-sm font-medium text-gray-700">Definir ou atualizar um preço</p>

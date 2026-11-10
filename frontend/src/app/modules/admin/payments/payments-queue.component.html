@@ -10,7 +10,7 @@
 
 <div class="space-y-3">
   <div *ngFor="let p of payments" class="bg-white border rounded-lg p-5">
-    <div class="flex items-start justify-between">
+    <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
         <a [routerLink]="['/admin/orders', p.orderId]" class="text-sm font-medium text-gray-800 hover:text-brand-700">
           {{ p.orderNumber }}

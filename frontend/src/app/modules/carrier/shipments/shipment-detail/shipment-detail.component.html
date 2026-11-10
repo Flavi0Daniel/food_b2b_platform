@@ -4,7 +4,7 @@
 <div *ngIf="shipment as s" class="max-w-3xl space-y-6">
   <a routerLink="/carrier/shipments" class="text-sm text-brand-600 hover:underline">← Voltar às guias</a>
 
-  <div class="flex items-start justify-between">
+  <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <h2 class="text-lg font-semibold text-gray-800">Guia #{{ s.id }}</h2>
       <p class="text-sm text-gray-500" *ngIf="s.poNumber">{{ s.poNumber }}</p>

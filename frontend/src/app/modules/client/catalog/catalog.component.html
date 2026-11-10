@@ -50,7 +50,7 @@
 <!-- Barra do carrinho, fixa no fundo do ecrã -->
 <div
   *ngIf="(cart.items$ | async)?.length"
-  class="fixed bottom-0 left-60 right-0 bg-white border-t shadow-lg px-6 py-4 flex items-center justify-between"
+  class="fixed bottom-0 left-0 lg:left-60 right-0 z-20 bg-white border-t shadow-lg px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between gap-3"
 >
   <div class="text-sm text-gray-700">
     <span class="font-medium">{{ cart.itemCount }}</span> item(ns) no carrinho ·
@@ -59,7 +59,7 @@
   <button
     type="button"
     (click)="goToCheckout()"
-    class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-6 py-2.5 rounded-md transition-colors"
+    class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 lg:px-6 py-2.5 rounded-md transition-colors"
   >
     Finalizar Encomenda
   </button>

@@ -3,10 +3,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
-import { ComingSoonComponent } from '../../shared/components/coming-soon/coming-soon.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
 import { PurchaseOrdersListComponent } from './purchase-orders/purchase-orders-list.component';
 import { PurchaseOrderDetailComponent } from './purchase-orders/purchase-order-detail/purchase-order-detail.component';
+import { SupplierPricingComponent } from './pricing/supplier-pricing.component';
+import { SupplierAddressesComponent } from './addresses/supplier-addresses.component';
 
 const navItems: ShellNavItem[] = [
   { label: 'Ordens de Compra', route: 'purchase-orders' },
@@ -24,8 +25,8 @@ const routes: Routes = [
       { path: '', redirectTo: 'purchase-orders', pathMatch: 'full' },
       { path: 'purchase-orders', component: PurchaseOrdersListComponent },
       { path: 'purchase-orders/:id', component: PurchaseOrderDetailComponent },
-      { path: 'pricing', component: ComingSoonComponent, data: { pageTitle: 'Tabela de Preços de Custo' } },
-      { path: 'addresses', component: ComingSoonComponent, data: { pageTitle: 'Morada de Recolha' } },
+      { path: 'pricing', component: SupplierPricingComponent },
+      { path: 'addresses', component: SupplierAddressesComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

@@ -3,7 +3,7 @@
 
 <div *ngIf="order as o" class="max-w-4xl space-y-6">
   <!-- Cabeçalho -->
-  <div class="flex items-start justify-between">
+  <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <h2 class="text-lg font-semibold text-gray-800">{{ o.orderNumber }}</h2>
       <p class="text-sm text-gray-500">Criada em {{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
