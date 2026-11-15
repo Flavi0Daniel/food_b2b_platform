@@ -4,6 +4,7 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { NotificationsComponent } from '../../shared/components/notifications/notifications.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OrdersListComponent } from './orders/orders-list.component';
 import { OrderDetailComponent } from './orders/order-detail/order-detail.component';
@@ -13,13 +14,13 @@ import { UsersAdminComponent, UsersPageConfig } from './users/users-admin.compon
 import { SupplierDetailComponent } from './suppliers/supplier-detail.component';
 
 const navItems: ShellNavItem[] = [
-  { label: 'Dashboard', route: 'dashboard' },
-  { label: 'Encomendas', route: 'orders' },
-  { label: 'Pagamentos', route: 'payments' },
-  { label: 'Produtos', route: 'products' },
-  { label: 'Fornecedores', route: 'suppliers' },
-  { label: 'Transportadoras', route: 'carriers' },
-  { label: 'Utilizadores', route: 'users' },
+  { label: 'Dashboard', route: 'dashboard', icon: 'layout-dashboard' },
+  { label: 'Encomendas', route: 'orders', icon: 'clipboard-list' },
+  { label: 'Pagamentos', route: 'payments', icon: 'credit-card' },
+  { label: 'Produtos', route: 'products', icon: 'package' },
+  { label: 'Fornecedores', route: 'suppliers', icon: 'factory' },
+  { label: 'Transportadoras', route: 'carriers', icon: 'truck' },
+  { label: 'Utilizadores', route: 'users', icon: 'users' },
 ];
 
 // A mesma página (UsersAdminComponent) serve Fornecedores, Transportadoras e Utilizadores,
@@ -57,6 +58,7 @@ const routes: Routes = [
       { path: 'suppliers/:id', component: SupplierDetailComponent },
       { path: 'carriers', component: UsersAdminComponent, data: { config: carriersConfig } },
       { path: 'users', component: UsersAdminComponent, data: { config: usersConfig } },
+      { path: 'notifications', component: NotificationsComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

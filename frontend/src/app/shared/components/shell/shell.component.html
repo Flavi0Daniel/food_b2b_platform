@@ -21,9 +21,7 @@
         class="lg:hidden -mr-2 p-2 rounded-md text-brand-100 hover:bg-brand-700"
         aria-label="Fechar menu"
       >
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
-        </svg>
+        <app-icon name="x" class="h-5 w-5"></app-icon>
       </button>
     </div>
 
@@ -33,19 +31,31 @@
         [routerLink]="item.route"
         routerLinkActive="bg-brand-900"
         (click)="closeMenu()"
-        class="block px-5 py-3 text-sm text-brand-50 hover:bg-brand-700 transition-colors"
+        class="flex items-center gap-3 px-5 py-3 text-sm text-brand-50 hover:bg-brand-700 transition-colors"
       >
-        {{ item.label }}
+        <app-icon *ngIf="item.icon" [name]="item.icon" class="h-4 w-4 opacity-80"></app-icon>
+        <span>{{ item.label }}</span>
       </a>
     </nav>
 
-    <div class="px-5 py-4 border-t border-brand-700">
+    <div class="border-t border-brand-700 py-2">
+      <!-- Em ecrãs muito pequenos o nome no cabeçalho esconde-se: o perfil fica aqui -->
+      <a
+        routerLink="profile"
+        routerLinkActive="bg-brand-900"
+        (click)="closeMenu()"
+        class="sm:hidden flex items-center gap-3 px-5 py-3 text-sm text-brand-50 hover:bg-brand-700 transition-colors"
+      >
+        <app-icon name="user" class="h-4 w-4 opacity-80"></app-icon>
+        <span>O meu perfil</span>
+      </a>
       <button
         type="button"
         (click)="logout()"
-        class="w-full text-left text-sm text-brand-100 hover:text-white transition-colors"
+        class="w-full flex items-center gap-3 px-5 py-3 text-left text-sm text-brand-100 hover:text-white transition-colors"
       >
-        Terminar sessão
+        <app-icon name="log-out" class="h-4 w-4 opacity-80"></app-icon>
+        <span>Terminar sessão</span>
       </button>
     </div>
   </aside>
@@ -61,19 +71,31 @@
         aria-controls="app-sidebar"
         [attr.aria-expanded]="menuOpen"
       >
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <app-icon name="menu" class="h-6 w-6"></app-icon>
       </button>
 
       <h1 class="flex-1 min-w-0 truncate text-base lg:text-lg font-semibold text-gray-800">{{ title }}</h1>
 
       <a
+        routerLink="notifications"
+        class="relative shrink-0 p-2 rounded-md text-gray-600 hover:bg-gray-100"
+        aria-label="Notificações"
+      >
+        <app-icon name="bell" class="h-5 w-5"></app-icon>
+        <span
+          *ngIf="notifications.unreadCount$ | async as count"
+          class="absolute top-0 right-0 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[1.1rem] text-center font-medium"
+        >
+          {{ count > 9 ? '9+' : count }}
+        </span>
+      </a>
+
+      <a
         routerLink="profile"
-        class="shrink-0 max-w-[9rem] sm:max-w-none truncate text-sm text-gray-500 hover:text-brand-700 transition-colors"
+        class="hidden sm:block shrink-0 truncate text-sm text-gray-500 hover:text-brand-700 transition-colors"
         *ngIf="auth.currentUser as user"
       >
-        {{ user.name }} <span class="hidden sm:inline text-gray-400">· {{ user.role }}</span>
+        {{ user.name }} <span class="text-gray-400">· {{ user.role }}</span>
       </a>
     </header>
 

@@ -4,15 +4,16 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { NotificationsComponent } from '../../shared/components/notifications/notifications.component';
 import { PurchaseOrdersListComponent } from './purchase-orders/purchase-orders-list.component';
 import { PurchaseOrderDetailComponent } from './purchase-orders/purchase-order-detail/purchase-order-detail.component';
 import { SupplierPricingComponent } from './pricing/supplier-pricing.component';
 import { SupplierAddressesComponent } from './addresses/supplier-addresses.component';
 
 const navItems: ShellNavItem[] = [
-  { label: 'Ordens de Compra', route: 'purchase-orders' },
-  { label: 'Minha Tabela de Preços', route: 'pricing' },
-  { label: 'Morada de Recolha', route: 'addresses' },
+  { label: 'Ordens de Compra', route: 'purchase-orders', icon: 'clipboard-list' },
+  { label: 'Minha Tabela de Preços', route: 'pricing', icon: 'tag' },
+  { label: 'Morada de Recolha', route: 'addresses', icon: 'map-pin' },
 ];
 
 const routes: Routes = [
@@ -27,6 +28,7 @@ const routes: Routes = [
       { path: 'purchase-orders/:id', component: PurchaseOrderDetailComponent },
       { path: 'pricing', component: SupplierPricingComponent },
       { path: 'addresses', component: SupplierAddressesComponent },
+      { path: 'notifications', component: NotificationsComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

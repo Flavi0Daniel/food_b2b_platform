@@ -1,10 +1,13 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationsService } from '../../../core/services/notifications.service';
+import { IconName } from '../icon/icon.component';
 
 export interface ShellNavItem {
   label: string;
   route: string;
+  icon?: IconName;
 }
 
 /**
@@ -15,13 +18,13 @@ export interface ShellNavItem {
  *     children: [...] }
  *
  * Responsivo: a partir de 1024px (lg) o menu lateral fica fixo ao lado do conteúdo; abaixo disso
- * é uma gaveta que se abre pelo botão de menu no cabeçalho.
+ * é uma gaveta que se abre pelo botão de menu no cabeçalho. O sino mostra as notificações por ler.
  */
 @Component({
   selector: 'app-shell',
   templateUrl: './shell.component.html',
 })
-export class ShellComponent implements OnInit {
+export class ShellComponent implements OnInit, OnDestroy {
   title = '';
   navItems: ShellNavItem[] = [];
 
@@ -31,11 +34,17 @@ export class ShellComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     readonly auth: AuthService,
+    readonly notifications: NotificationsService,
   ) {}
 
   ngOnInit(): void {
     this.title = (this.route.snapshot.data['title'] as string) ?? '';
     this.navItems = (this.route.snapshot.data['navItems'] as ShellNavItem[]) ?? [];
+    this.notifications.startPolling();
+  }
+
+  ngOnDestroy(): void {
+    this.notifications.stopPolling();
   }
 
   toggleMenu(): void {
@@ -60,5 +69,11 @@ export class ShellComponent implements OnInit {
   @HostListener('window:resize')
   onResize(): void {
     if (window.innerWidth >= 1024) this.closeMenu();
+  }
+
+  /** Ao voltar ao separador, atualiza o sino sem esperar pelo próximo ciclo. */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    if (document.visibilityState === 'visible') this.notifications.refreshUnreadCount();
   }
 }

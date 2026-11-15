@@ -1,0 +1,61 @@
+<div class="max-w-3xl space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="text-base font-semibold text-gray-800">Notificações</h2>
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+      <label class="flex items-center gap-2 text-sm text-gray-600">
+        <input
+          type="checkbox"
+          [checked]="unreadOnly"
+          (change)="onUnreadOnlyChange($event)"
+          class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+        />
+        Só por ler
+      </label>
+      <button
+        type="button"
+        (click)="markAll()"
+        [disabled]="markingAll"
+        class="text-sm font-medium text-brand-600 hover:underline disabled:opacity-50"
+      >
+        Marcar todas como lidas
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-sm text-gray-500">A carregar...</div>
+  <p *ngIf="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+
+  <div *ngIf="!loading && !errorMessage && !items.length" class="bg-white border rounded-lg p-10 text-center text-sm text-gray-400">
+    <div class="flex justify-center mb-2"><app-icon name="bell" class="h-8 w-8 text-gray-300"></app-icon></div>
+    {{ unreadOnly ? 'Não tem notificações por ler.' : 'Ainda não tem notificações.' }}
+  </div>
+
+  <div class="space-y-2">
+    <button
+      *ngFor="let n of items"
+      type="button"
+      (click)="open(n)"
+      class="w-full text-left border rounded-lg p-4 flex gap-3 hover:border-brand-300 transition-colors"
+      [ngClass]="n.isRead ? 'bg-white' : 'bg-brand-50 border-brand-200'"
+    >
+      <span *ngIf="!n.isRead" class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600"></span>
+      <span *ngIf="n.isRead" class="h-2 w-2 shrink-0"></span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-sm text-gray-800" [ngClass]="n.isRead ? 'font-normal' : 'font-semibold'">{{ n.title }}</span>
+        <span class="block text-sm text-gray-600 mt-0.5">{{ n.message }}</span>
+        <span class="block text-xs text-gray-400 mt-1">{{ n.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </span>
+    </button>
+  </div>
+
+  <div *ngIf="hasMore && !loading" class="text-center pt-2">
+    <button
+      type="button"
+      (click)="loadMore()"
+      [disabled]="loadingMore"
+      class="text-sm font-medium text-brand-600 hover:underline disabled:opacity-50"
+    >
+      {{ loadingMore ? 'A carregar...' : 'Carregar mais' }}
+    </button>
+  </div>
+</div>

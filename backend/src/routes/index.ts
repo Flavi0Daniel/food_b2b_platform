@@ -12,7 +12,7 @@ import purchaseOrdersRoutes from '../modules/purchase-orders/purchase-orders.rou
 import shipmentsRoutes from '../modules/shipments/shipments.routes';
 import supplierProductsRoutes from '../modules/supplier-products/supplier-products.routes';
 import usersRoutes from '../modules/users/users.routes';
-
+ 
 const router = Router();
 
 router.use('/auth', authRoutes);

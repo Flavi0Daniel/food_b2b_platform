@@ -31,7 +31,10 @@ router.put(
   authorize('SUPPLIER'),
   validate({ params: productParamSchema, body: upsertSupplierProductSchema }),
   asyncHandler(async (req, res) => {
-    const row = await supplierProductsService.upsert(req.user!.id, Number(req.params.productId), req.body);
+    // O próprio fornecedor a alterar o seu custo: se subir, a equipa é avisada (sino + email).
+    const row = await supplierProductsService.upsert(req.user!.id, Number(req.params.productId), req.body, {
+      alertStaffOnIncrease: true,
+    });
     sendSuccess(res, row, 'Preço de custo atualizado');
   }),
 );

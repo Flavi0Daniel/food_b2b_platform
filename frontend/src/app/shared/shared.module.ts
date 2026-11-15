@@ -7,6 +7,8 @@ import { ShellComponent } from './components/shell/shell.component';
 import { ComingSoonComponent } from './components/coming-soon/coming-soon.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { StatusBadgeComponent } from './components/status-badge/status-badge.component';
+import { IconComponent } from './components/icon/icon.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
 
 // Conjunto inicial de ícones. Adicionar aqui sempre que um novo ícone for usado num template
 // (o lucide-angular só inclui no bundle final os ícones explicitamente listados).
@@ -14,7 +16,14 @@ const ICONS = { Home, Package, ShoppingCart, Truck, Users, LogOut, Bell, LayoutD
 
 const commonModules = [CommonModule, FormsModule, ReactiveFormsModule, RouterModule];
 
-const sharedComponents = [ShellComponent, ComingSoonComponent, ProfileComponent, StatusBadgeComponent];
+const sharedComponents = [
+  ShellComponent,
+  ComingSoonComponent,
+  ProfileComponent,
+  StatusBadgeComponent,
+  IconComponent,
+  NotificationsComponent,
+];
 
 @NgModule({
   declarations: [...sharedComponents],

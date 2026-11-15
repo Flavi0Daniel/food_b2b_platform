@@ -4,10 +4,11 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { NotificationsComponent } from '../../shared/components/notifications/notifications.component';
 import { ShipmentsListComponent } from './shipments/shipments-list.component';
 import { ShipmentDetailComponent } from './shipments/shipment-detail/shipment-detail.component';
 
-const navItems: ShellNavItem[] = [{ label: 'Guias de Transporte', route: 'shipments' }];
+const navItems: ShellNavItem[] = [{ label: 'Guias de Transporte', route: 'shipments', icon: 'truck' }];
 
 const routes: Routes = [
   {
@@ -19,6 +20,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'shipments', pathMatch: 'full' },
       { path: 'shipments', component: ShipmentsListComponent },
       { path: 'shipments/:id', component: ShipmentDetailComponent },
+      { path: 'notifications', component: NotificationsComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

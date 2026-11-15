@@ -4,6 +4,7 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { ShellComponent, ShellNavItem } from '../../shared/components/shell/shell.component';
 import { ProfileComponent } from '../../shared/components/profile/profile.component';
+import { NotificationsComponent } from '../../shared/components/notifications/notifications.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { OrdersListComponent } from './orders/orders-list.component';
@@ -11,9 +12,9 @@ import { OrderDetailComponent } from './orders/order-detail/order-detail.compone
 import { AddressesComponent } from './addresses/addresses.component';
 
 const navItems: ShellNavItem[] = [
-  { label: 'Catálogo', route: 'catalog' },
-  { label: 'As Minhas Encomendas', route: 'orders' },
-  { label: 'As Minhas Moradas', route: 'addresses' },
+  { label: 'Catálogo', route: 'catalog', icon: 'shopping-cart' },
+  { label: 'As Minhas Encomendas', route: 'orders', icon: 'clipboard-list' },
+  { label: 'As Minhas Moradas', route: 'addresses', icon: 'map-pin' },
 ];
 
 const routes: Routes = [
@@ -29,6 +30,7 @@ const routes: Routes = [
       { path: 'orders', component: OrdersListComponent },
       { path: 'orders/:id', component: OrderDetailComponent },
       { path: 'addresses', component: AddressesComponent },
+      { path: 'notifications', component: NotificationsComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },
