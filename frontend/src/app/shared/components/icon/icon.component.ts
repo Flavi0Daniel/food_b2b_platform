@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 
 export type IconName =
   | 'bell'
+  | 'image'
   | 'menu'
   | 'x'
   | 'layout-dashboard'

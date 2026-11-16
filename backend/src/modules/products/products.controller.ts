@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { AppError } from '../../common/errors/AppError';
+import { removeUploadedFiles } from '../../common/middlewares/upload.middleware';
 import { sendSuccess } from '../../common/utils/apiResponse';
 import { asyncHandler } from '../../common/utils/asyncHandler';
 import { productsService } from './products.service';
@@ -17,6 +19,24 @@ export const productsController = {
   update: asyncHandler(async (req: Request, res: Response) => {
     const product = await productsService.updateProduct(Number(req.params.id), req.body);
     sendSuccess(res, product, 'Produto atualizado com sucesso');
+  }),
+
+  uploadImage: asyncHandler(async (req: Request, res: Response) => {
+    const file = req.file;
+    if (!file) throw AppError.badRequest('Envie uma imagem no campo "image"');
+
+    try {
+      const product = await productsService.setImage(Number(req.params.id), `products/${file.filename}`);
+      sendSuccess(res, product, 'Foto do produto atualizada');
+    } catch (err) {
+      await removeUploadedFiles([file]); // produto inexistente (ou falha): não deixa o ficheiro órfão em disco
+      throw err;
+    }
+  }),
+
+  removeImage: asyncHandler(async (req: Request, res: Response) => {
+    const product = await productsService.removeImage(Number(req.params.id));
+    sendSuccess(res, product, 'Foto do produto removida');
   }),
 
   updateAvailability: asyncHandler(async (req: Request, res: Response) => {

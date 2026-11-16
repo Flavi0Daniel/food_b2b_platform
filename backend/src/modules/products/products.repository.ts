@@ -74,6 +74,10 @@ export const productsRepository = {
     return queryOne<{ id: number }>('SELECT id FROM categories WHERE id = ?', [id]);
   },
 
+  async updateImage(id: number, imageUrl: string | null): Promise<void> {
+    await exec('UPDATE products SET image_url = ? WHERE id = ?', [imageUrl, id]);
+  },
+
   async updateAvailability(id: number, isAvailable: boolean): Promise<void> {
     await exec('UPDATE products SET is_available = ? WHERE id = ?', [isAvailable, id]);
   },

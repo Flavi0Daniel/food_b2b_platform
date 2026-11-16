@@ -5,8 +5,9 @@ import { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import { env } from '../../config/env';
 import { AppError } from '../errors/AppError';
+import { isStoredProductImage } from '../utils/files';
 
-type UploadFolder = 'payments' | 'pod';
+type UploadFolder = 'payments' | 'pod' | 'products';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -53,6 +54,19 @@ export const uploadPod = multer({
   { name: 'photo', maxCount: 1 },
   { name: 'signature', maxCount: 1 },
 ]);
+
+/** Foto de produto: campo `image` (JPG, PNG ou WEBP, até 5 MB). O browser já a reduz antes de enviar. */
+export const uploadProductImage = multer({
+  storage: storageFor('products'),
+  limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 2, parts: 4 },
+  fileFilter: filterFor(IMAGE_TYPES),
+}).single('image');
+
+/** Apaga uma foto de produto antiga. Só toca em ficheiros com o nome que o próprio servidor gera. */
+export async function deleteStoredProductImage(stored: string | null | undefined): Promise<void> {
+  if (!isStoredProductImage(stored)) return; // URLs externos ou valores inesperados: não mexe em nada
+  await fs.promises.unlink(path.join(uploadRoot('products'), path.basename(stored))).catch(() => undefined);
+}
 
 export function collectUploadedFiles(req: Request): Express.Multer.File[] {
   const files: Express.Multer.File[] = [];

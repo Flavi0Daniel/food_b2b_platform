@@ -20,7 +20,18 @@
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div *ngFor="let p of filteredProducts" class="bg-white border rounded-lg p-4 flex flex-col">
+    <div *ngFor="let p of filteredProducts" class="bg-white border rounded-lg p-4 flex flex-col overflow-hidden">
+      <div class="-mx-4 -mt-4 mb-3 aspect-[4/3] bg-gray-100 flex items-center justify-center">
+        <img
+          *ngIf="p.imageUrl; else noPhoto"
+          [src]="p.imageUrl | mediaUrl"
+          [alt]="p.name"
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-cover"
+        />
+        <ng-template #noPhoto><app-icon name="image" class="h-10 w-10 text-gray-300"></app-icon></ng-template>
+      </div>
       <p class="text-xs text-gray-400 mb-1">{{ p.categoryName }}</p>
       <p class="text-sm font-medium text-gray-800 mb-1">{{ p.name }}</p>
       <p class="text-sm text-brand-700 font-semibold mb-3">

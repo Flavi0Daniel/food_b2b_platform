@@ -43,6 +43,17 @@ export class ProductsService {
     return this.http.post<ApiSuccess<Category>>(this.categoriesUrl, { name }).pipe(map((res) => res.data));
   }
 
+  /** Só ADMIN. Envia a foto do produto (multipart, campo `image`); substitui a anterior. */
+  uploadImage(id: number, file: File): Observable<Product> {
+    const form = new FormData();
+    form.append('image', file, file.name);
+    return this.http.post<ApiSuccess<Product>>(`${this.productsUrl}/${id}/image`, form).pipe(map((res) => res.data));
+  }
+
+  removeImage(id: number): Observable<Product> {
+    return this.http.delete<ApiSuccess<Product>>(`${this.productsUrl}/${id}/image`).pipe(map((res) => res.data));
+  }
+
   renameCategory(id: number, name: string): Observable<Category> {
     return this.http.patch<ApiSuccess<Category>>(`${this.categoriesUrl}/${id}`, { name }).pipe(map((res) => res.data));
   }

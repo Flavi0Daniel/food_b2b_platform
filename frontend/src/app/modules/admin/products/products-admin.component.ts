@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CreateProductDto, ProductsService } from '../../../core/services/products.service';
 import { Category, Product, ProductUnit } from '../../../core/models/product.model';
 import { apiErrorMessage } from '../../../core/utils/api-error';
+import { resizeImage } from '../../../core/utils/image-resize';
 
 @Component({
   selector: 'app-products-admin',
@@ -33,6 +34,11 @@ export class ProductsAdminComponent implements OnInit {
   /** Preço de venda em edição para cada produto (chave = productId). */
   readonly priceDrafts: Record<number, number | null> = {};
   busyProductId: number | null = null;
+
+  /** Fotos: produto a enviar/remover, último erro e foto escolhida no formulário "Novo produto". */
+  photoBusyId: number | null = null;
+  photoError: string | null = null;
+  private newPhoto: File | null = null;
 
   /** Renomear categoria (inline). */
   editingCategoryId: number | null = null;
@@ -119,6 +125,9 @@ export class ProductsAdminComponent implements OnInit {
           this.setProducts([...this.products, product].sort((a, b) => a.name.localeCompare(b.name)));
           this.productForm.reset({ name: '', categoryId: null, baseUnit: 'KG', sellPrice: null, description: '' });
           this.showProductForm = false;
+          const photo = this.newPhoto;
+          this.newPhoto = null;
+          if (photo) void this.uploadPhoto(product.id, photo);
         },
         error: (err: HttpErrorResponse) => {
           this.productError = apiErrorMessage(err, 'Não foi possível criar o produto.');
@@ -260,6 +269,60 @@ export class ProductsAdminComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           this.editError = apiErrorMessage(err, 'Não foi possível guardar as alterações.');
+        },
+      });
+  }
+
+  onNewPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.newPhoto = input.files?.[0] ?? null;
+  }
+
+  onPhotoSelected(product: Product, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permite escolher o mesmo ficheiro outra vez
+    if (file) void this.uploadPhoto(product.id, file);
+  }
+
+  removePhoto(product: Product): void {
+    if (!confirm(`Remover a foto de "${product.name}"?`)) return;
+
+    this.photoBusyId = product.id;
+    this.photoError = null;
+
+    this.productsService
+      .removeImage(product.id)
+      .pipe(finalize(() => (this.photoBusyId = null)))
+      .subscribe({
+        next: (updated) => this.replace(updated),
+        error: (err: HttpErrorResponse) => {
+          this.photoError = apiErrorMessage(err, 'Não foi possível remover a foto.');
+        },
+      });
+  }
+
+  /** Reduz a imagem no browser (≤ 1200px, JPEG) e envia: as fotos de telemóvel têm vários MB. */
+  private async uploadPhoto(productId: number, file: File): Promise<void> {
+    this.photoBusyId = productId;
+    this.photoError = null;
+
+    let resized: File;
+    try {
+      resized = await resizeImage(file);
+    } catch (err) {
+      this.photoBusyId = null;
+      this.photoError = err instanceof Error ? err.message : 'Não foi possível processar a imagem.';
+      return;
+    }
+
+    this.productsService
+      .uploadImage(productId, resized)
+      .pipe(finalize(() => (this.photoBusyId = null)))
+      .subscribe({
+        next: (updated) => this.replace(updated),
+        error: (err: HttpErrorResponse) => {
+          this.photoError = apiErrorMessage(err, 'Não foi possível enviar a foto.');
         },
       });
   }

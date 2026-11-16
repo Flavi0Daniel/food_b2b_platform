@@ -8,6 +8,7 @@ import { ComingSoonComponent } from './components/coming-soon/coming-soon.compon
 import { ProfileComponent } from './components/profile/profile.component';
 import { StatusBadgeComponent } from './components/status-badge/status-badge.component';
 import { IconComponent } from './components/icon/icon.component';
+import { MediaUrlPipe } from './pipes/media-url.pipe';
 import { NotificationsComponent } from './components/notifications/notifications.component';
 
 // Conjunto inicial de ícones. Adicionar aqui sempre que um novo ícone for usado num template
@@ -23,6 +24,7 @@ const sharedComponents = [
   StatusBadgeComponent,
   IconComponent,
   NotificationsComponent,
+  MediaUrlPipe,
 ];
 
 @NgModule({

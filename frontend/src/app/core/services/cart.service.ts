@@ -5,6 +5,7 @@ import { Product } from '../models/product.model';
 export interface CartItem {
   productId: number;
   productName: string;
+  imageUrl: string | null;
   unit: string;
   sellPrice: number;
   quantity: number;
@@ -42,6 +43,7 @@ export class CartService {
       items.push({
         productId: product.id,
         productName: product.name,
+        imageUrl: product.imageUrl,
         unit: product.baseUnit,
         sellPrice: product.sellPrice,
         quantity,
