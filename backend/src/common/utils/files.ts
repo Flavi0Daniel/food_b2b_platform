@@ -1,6 +1,13 @@
 /** Foto de produto guardada pelo servidor: 'products/<uuid>.<jpg|png|webp>' (nunca um caminho vindo do cliente). */
 const STORED_PRODUCT_IMAGE = /^products\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/;
 
+/** Avatar/logo guardado pelo servidor: 'avatars/<uuid>.<jpg|png|webp>'. */
+const STORED_AVATAR = /^avatars\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/;
+
+export function isStoredAvatar(value: string | null | undefined): value is string {
+  return !!value && STORED_AVATAR.test(value);
+}
+
 export function isStoredProductImage(value: string | null | undefined): value is string {
   return !!value && STORED_PRODUCT_IMAGE.test(value);
 }

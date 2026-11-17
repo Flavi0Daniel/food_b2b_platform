@@ -5,9 +5,9 @@ import { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import { env } from '../../config/env';
 import { AppError } from '../errors/AppError';
-import { isStoredProductImage } from '../utils/files';
+import { isStoredAvatar, isStoredProductImage } from '../utils/files';
 
-type UploadFolder = 'payments' | 'pod' | 'products';
+type UploadFolder = 'payments' | 'pod' | 'products' | 'avatars';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -61,6 +61,19 @@ export const uploadProductImage = multer({
   limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 2, parts: 4 },
   fileFilter: filterFor(IMAGE_TYPES),
 }).single('image');
+
+/** Avatar/logo do próprio utilizador: campo `image` (JPG, PNG ou WEBP, até 5 MB). */
+export const uploadAvatar = multer({
+  storage: storageFor('avatars'),
+  limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 2, parts: 4 },
+  fileFilter: filterFor(IMAGE_TYPES),
+}).single('image');
+
+/** Apaga um avatar antigo. Só toca em ficheiros com o nome que o próprio servidor gera. */
+export async function deleteStoredAvatar(stored: string | null | undefined): Promise<void> {
+  if (!isStoredAvatar(stored)) return;
+  await fs.promises.unlink(path.join(uploadRoot('avatars'), path.basename(stored))).catch(() => undefined);
+}
 
 /** Apaga uma foto de produto antiga. Só toca em ficheiros com o nome que o próprio servidor gera. */
 export async function deleteStoredProductImage(stored: string | null | undefined): Promise<void> {

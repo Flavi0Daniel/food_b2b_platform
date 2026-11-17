@@ -94,8 +94,13 @@
     <tbody>
       <tr *ngFor="let u of users" class="border-b last:border-0">
         <td class="py-3 px-4">
-          <p class="text-gray-800 font-medium">{{ u.companyName || u.name }}</p>
-          <p class="text-xs text-gray-400" *ngIf="u.companyName">{{ u.name }}</p>
+          <div class="flex items-center gap-3">
+            <app-avatar [name]="u.companyName || u.name" [src]="u.avatarUrl" size="sm"></app-avatar>
+            <div class="min-w-0">
+              <p class="text-gray-800 font-medium">{{ u.companyName || u.name }}</p>
+              <p class="text-xs text-gray-400" *ngIf="u.companyName">{{ u.name }}</p>
+            </div>
+          </div>
         </td>
         <td class="py-3 px-4 text-gray-600">{{ u.email }}</td>
         <td class="py-3 px-4 text-gray-600">{{ u.phone || '—' }}</td>

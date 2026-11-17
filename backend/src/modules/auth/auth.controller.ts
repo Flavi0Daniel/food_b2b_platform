@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { sendSuccess } from '../../common/utils/apiResponse';
 import { asyncHandler } from '../../common/utils/asyncHandler';
 import { AppError } from '../../common/errors/AppError';
+import { removeUploadedFiles } from '../../common/middlewares/upload.middleware';
 import { authService } from './auth.service';
 import { authRepository } from './auth.repository';
 import { toSafeUser } from '../../common/types';
@@ -37,6 +38,24 @@ export const authController = {
   updateProfile: asyncHandler(async (req: Request, res: Response) => {
     const user = await authService.updateProfile(req.user!.id, req.body);
     sendSuccess(res, user, 'Perfil atualizado com sucesso');
+  }),
+
+  uploadAvatar: asyncHandler(async (req: Request, res: Response) => {
+    const file = req.file;
+    if (!file) throw AppError.badRequest('Envie uma imagem no campo "image"');
+
+    try {
+      const user = await authService.setAvatar(req.user!.id, `avatars/${file.filename}`);
+      sendSuccess(res, user, 'Foto de perfil atualizada');
+    } catch (err) {
+      await removeUploadedFiles([file]); // falha: não deixa o ficheiro órfão em disco
+      throw err;
+    }
+  }),
+
+  removeAvatar: asyncHandler(async (req: Request, res: Response) => {
+    const user = await authService.removeAvatar(req.user!.id);
+    sendSuccess(res, user, 'Foto de perfil removida');
   }),
 
   changePassword: asyncHandler(async (req: Request, res: Response) => {

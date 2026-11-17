@@ -1,6 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AvatarService } from '../../../core/services/avatar.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { IconName } from '../icon/icon.component';
 
@@ -35,6 +36,7 @@ export class ShellComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     readonly auth: AuthService,
     readonly notifications: NotificationsService,
+    private readonly avatars: AvatarService,
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +59,7 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.closeMenu();
+    this.avatars.clear(); // esquece as imagens privadas deste utilizador
     this.auth.logout();
   }
 

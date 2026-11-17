@@ -115,14 +115,19 @@ export class AuthService {
 
   updateProfile(dto: UpdateProfileDto): Observable<ApiSuccess<User>> {
     return this.http.patch<ApiSuccess<User>>(`${this.apiUrl}/me`, dto).pipe(
-      tap((res) => {
-        // Mantém os tokens, só atualiza os dados do utilizador guardados localmente.
-        const access = this.storage.getAccessToken();
-        const refresh = this.storage.getRefreshToken();
-        if (access && refresh) this.storage.setSession(access, refresh, res.data);
-        this.currentUserSubject.next(res.data);
-      }),
+      tap((res) => this.storeUser(res.data)),
     );
+  }
+
+  /** Foto de perfil (ou logo, no caso do Fornecedor). O cabeçalho atualiza sozinho. */
+  uploadAvatar(file: File): Observable<ApiSuccess<User>> {
+    const form = new FormData();
+    form.append('image', file, file.name);
+    return this.http.put<ApiSuccess<User>>(`${this.apiUrl}/me/avatar`, form).pipe(tap((res) => this.storeUser(res.data)));
+  }
+
+  removeAvatar(): Observable<ApiSuccess<User>> {
+    return this.http.delete<ApiSuccess<User>>(`${this.apiUrl}/me/avatar`).pipe(tap((res) => this.storeUser(res.data)));
   }
 
   /** O backend termina todas as sessões ao trocar a senha; o chamador deve encaminhar para o login. */
@@ -136,6 +141,14 @@ export class AuthService {
 
   resetPassword(token: string, newPassword: string): Observable<ApiSuccess<null>> {
     return this.http.post<ApiSuccess<null>>(`${this.apiUrl}/reset-password`, { token, newPassword });
+  }
+
+  /** Mantém os tokens, só atualiza os dados do utilizador guardados localmente. */
+  private storeUser(user: User): void {
+    const access = this.storage.getAccessToken();
+    const refresh = this.storage.getRefreshToken();
+    if (access && refresh) this.storage.setSession(access, refresh, user);
+    this.currentUserSubject.next(user);
   }
 
   private applySession(result: AuthResult): void {

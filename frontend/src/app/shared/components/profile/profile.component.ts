@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { resizeAvatar } from '../../../core/utils/image-resize';
 
 /** Garante que a nova senha e a confirmação coincidem (validador do FormGroup, não de um campo isolado). */
 function passwordsMatchValidator(group: FormGroup) {
@@ -26,6 +27,9 @@ export class ProfileComponent implements OnInit {
 
   passwordLoading = false;
   passwordError: string | null = null;
+
+  avatarBusy = false;
+  avatarError: string | null = null;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -58,6 +62,50 @@ export class ProfileComponent implements OnInit {
       companyName: user.companyName ?? '',
       taxId: user.taxId ?? '',
     });
+  }
+
+  async onAvatarSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permite escolher o mesmo ficheiro outra vez
+    if (!file) return;
+
+    this.avatarBusy = true;
+    this.avatarError = null;
+
+    let resized: File;
+    try {
+      resized = await resizeAvatar(file);
+    } catch (err) {
+      this.avatarBusy = false;
+      this.avatarError = err instanceof Error ? err.message : 'Não foi possível processar a imagem.';
+      return;
+    }
+
+    this.auth
+      .uploadAvatar(resized)
+      .pipe(finalize(() => (this.avatarBusy = false)))
+      .subscribe({
+        error: (err: HttpErrorResponse) => {
+          this.avatarError = err.error?.message ?? 'Não foi possível enviar a imagem.';
+        },
+      });
+  }
+
+  removeAvatar(): void {
+    if (!confirm('Remover a imagem do perfil?')) return;
+
+    this.avatarBusy = true;
+    this.avatarError = null;
+
+    this.auth
+      .removeAvatar()
+      .pipe(finalize(() => (this.avatarBusy = false)))
+      .subscribe({
+        error: (err: HttpErrorResponse) => {
+          this.avatarError = err.error?.message ?? 'Não foi possível remover a imagem.';
+        },
+      });
   }
 
   saveProfile(): void {

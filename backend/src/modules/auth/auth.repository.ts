@@ -82,6 +82,10 @@ export const authRepository = {
     await exec(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, [...params, userId]);
   },
 
+  async updateAvatar(userId: number, storedPath: string | null): Promise<void> {
+    await pool.query('UPDATE users SET avatar_url = ? WHERE id = ?', [storedPath, userId]);
+  },
+
   async updatePassword(userId: number, passwordHash: string): Promise<void> {
     await exec('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId]);
   },

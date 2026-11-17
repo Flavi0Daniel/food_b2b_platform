@@ -11,6 +11,8 @@ export interface User {
   status: UserStatus;
   companyName: string | null;
   taxId: string | null;
+  /** Caminho privado da API ('/api/files/avatars/...'): só o próprio e a equipa o conseguem abrir. */
+  avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }

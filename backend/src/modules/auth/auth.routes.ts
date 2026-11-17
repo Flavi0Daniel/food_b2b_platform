@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { validate } from '../../common/middlewares/validate.middleware';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
+import { uploadAvatar, verifyUploadedFiles } from '../../common/middlewares/upload.middleware';
 import {
   forgotPasswordLimiter,
   loginLimiter,
@@ -28,6 +29,10 @@ router.post('/logout', validate({ body: refreshTokenSchema }), authController.lo
 
 router.get('/me', authMiddleware, authController.me);
 router.patch('/me', authMiddleware, validate({ body: updateProfileSchema }), authController.updateProfile);
+// Avatar/logo do próprio utilizador (multipart, campo `image`). Privado: ver modules/files.
+router.put('/me/avatar', authMiddleware, uploadAvatar, verifyUploadedFiles, authController.uploadAvatar);
+router.delete('/me/avatar', authMiddleware, authController.removeAvatar);
+
 router.patch(
   '/me/password',
   authMiddleware,

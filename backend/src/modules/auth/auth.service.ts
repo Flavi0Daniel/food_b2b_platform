@@ -11,6 +11,7 @@ import {
   verifyRefreshToken,
 } from '../../common/utils/jwt';
 import { SafeUser, toSafeUser } from '../../common/types';
+import { deleteStoredAvatar } from '../../common/middlewares/upload.middleware';
 import { authRepository } from './auth.repository';
 import {
   ChangePasswordDto,
@@ -114,6 +115,26 @@ export const authService = {
     const updated = await authRepository.findUserById(userId);
     if (!updated) throw AppError.notFound('Utilizador não encontrado');
     return toSafeUser(updated);
+  },
+
+  /** `storedPath` é 'avatars/<uuid>.<ext>', já gravado em disco e verificado pelo middleware. */
+  async setAvatar(userId: number, storedPath: string): Promise<SafeUser> {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw AppError.notFound('Utilizador não encontrado');
+
+    await authRepository.updateAvatar(userId, storedPath);
+    await deleteStoredAvatar(user.avatar_url); // o avatar anterior deixa de ser preciso
+    return toSafeUser((await authRepository.findUserById(userId))!);
+  },
+
+  async removeAvatar(userId: number): Promise<SafeUser> {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw AppError.notFound('Utilizador não encontrado');
+    if (!user.avatar_url) return toSafeUser(user);
+
+    await authRepository.updateAvatar(userId, null);
+    await deleteStoredAvatar(user.avatar_url);
+    return toSafeUser((await authRepository.findUserById(userId))!);
   },
 
   /** Troca de senha autenticada (exige a senha atual). Termina todas as sessões por segurança. */

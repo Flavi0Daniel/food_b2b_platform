@@ -1,0 +1,7 @@
+<span
+  class="inline-flex items-center justify-center overflow-hidden rounded-full bg-brand-100 text-brand-700 font-semibold select-none"
+  [ngClass]="sizeClasses"
+>
+  <img *ngIf="imageUrl; else initialsText" [src]="imageUrl" [alt]="name" class="h-full w-full object-cover" />
+  <ng-template #initialsText>{{ initials }}</ng-template>
+</span>

@@ -6,6 +6,36 @@
       {{ auth.currentUser?.email }} · <span class="text-gray-400">{{ auth.currentUser?.role }}</span>
     </p>
 
+    <div *ngIf="auth.currentUser as me" class="flex flex-wrap items-center gap-4 mb-6">
+      <app-avatar [name]="me.companyName || me.name" [src]="me.avatarUrl" size="lg"></app-avatar>
+      <div class="space-y-1">
+        <p class="text-xs font-medium text-gray-600">{{ me.role === 'SUPPLIER' ? 'Logo' : 'Foto de perfil' }}</p>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <label class="text-xs font-medium text-brand-600 hover:underline cursor-pointer">
+            {{ avatarBusy ? 'A enviar...' : me.avatarUrl ? 'Trocar imagem' : 'Escolher imagem' }}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="hidden"
+              [disabled]="avatarBusy"
+              (change)="onAvatarSelected($event)"
+            />
+          </label>
+          <button
+            *ngIf="me.avatarUrl"
+            type="button"
+            (click)="removeAvatar()"
+            [disabled]="avatarBusy"
+            class="text-xs font-medium text-red-600 hover:underline disabled:opacity-60"
+          >
+            Remover
+          </button>
+        </div>
+        <p class="text-xs text-gray-400">Só você e a equipa da plataforma veem esta imagem.</p>
+        <p *ngIf="avatarError" class="text-xs text-red-600">{{ avatarError }}</p>
+      </div>
+    </div>
+
     <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>

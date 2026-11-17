@@ -1,3 +1,5 @@
+import { fileUrl } from './utils/files';
+
 export const USER_ROLES = ['ADMIN', 'OPERATOR', 'CLIENT', 'SUPPLIER', 'CARRIER'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
@@ -21,6 +23,8 @@ export interface UserRecord {
   status: UserStatus;
   company_name: string | null;
   tax_id: string | null;
+  /** Caminho interno ('avatars/<uuid>.jpg'). Em SafeUser passa a URL autenticado da API. */
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +34,8 @@ export type SafeUser = Omit<UserRecord, 'password_hash'>;
 
 export function toSafeUser(user: UserRecord): SafeUser {
   const { password_hash: _passwordHash, ...safeUser } = user;
-  return safeUser;
+  // O avatar é privado: o URL aponta para /api/files/avatars (exige token e só o próprio e a equipa o abrem).
+  return { ...safeUser, avatar_url: fileUrl(safeUser.avatar_url) };
 }
 
 export const STAFF_ROLES: UserRole[] = ['ADMIN', 'OPERATOR'];
