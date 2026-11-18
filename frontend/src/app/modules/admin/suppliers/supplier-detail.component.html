@@ -15,64 +15,17 @@
     <app-status-badge [label]="statusLabels[s.status]" [variant]="statusVariant(s.status)"></app-status-badge>
   </div>
 
-  <p *ngIf="!addresses.length" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-    Este fornecedor ainda não tem morada de recolha. Sem ela não é possível aprovar encomendas com os seus produtos.
-  </p>
-
   <!-- Moradas -->
-  <div class="bg-white border rounded-lg p-5">
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-700">Morada de recolha</h3>
-      <button type="button" (click)="showAddressForm = !showAddressForm" class="text-xs font-medium text-brand-600 hover:underline">
-        {{ showAddressForm ? 'Cancelar' : '+ Nova morada' }}
-      </button>
-    </div>
-
-    <div *ngFor="let a of addresses" class="py-2 border-b last:border-0 text-sm">
-      <p class="text-gray-800">
-        {{ a.label || a.street }}
-        <span *ngIf="a.isDefault" class="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full ml-2">Predefinida</span>
-      </p>
-      <p class="text-gray-600">{{ a.street }}, {{ a.city }}<span *ngIf="a.municipality">, {{ a.municipality }}</span></p>
-      <p class="text-xs text-gray-400" *ngIf="a.referencePoint">{{ a.referencePoint }}</p>
-    </div>
-
-    <form *ngIf="showAddressForm" [formGroup]="addressForm" (ngSubmit)="saveAddress()" class="mt-4 pt-4 border-t space-y-4">
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-gray-400">(opcional)</span></label>
-          <input formControlName="label" placeholder="Ex: Armazém Viana" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Rua / Endereço</label>
-          <input formControlName="street" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-          <input formControlName="city" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Município <span class="text-gray-400">(opcional)</span></label>
-          <input formControlName="municipality" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
-        </div>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de referência <span class="text-gray-400">(opcional)</span></label>
-        <input formControlName="referencePoint" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
-      </div>
-      <label class="flex items-center gap-2 text-sm text-gray-700">
-        <input type="checkbox" formControlName="isDefault" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
-        Usar como morada de recolha predefinida
-      </label>
-      <p *ngIf="addressError" class="text-sm text-red-600">{{ addressError }}</p>
-      <button
-        type="submit"
-        [disabled]="addressSaving"
-        class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
-      >
-        {{ addressSaving ? 'A guardar...' : 'Guardar morada' }}
-      </button>
-    </form>
+  <div class="bg-white border rounded-lg p-4 sm:p-5">
+    <app-address-manager
+      [userId]="s.id"
+      title="Morada de recolha"
+      description="É aqui que a transportadora recolhe a mercadoria deste fornecedor. Se houver várias, usa-se a predefinida."
+      emptyMessage="Este fornecedor ainda não tem morada de recolha. Sem ela não é possível aprovar encomendas com os seus produtos."
+      emptyTone="warning"
+      labelPlaceholder="Ex: Armazém Viana"
+      [embedded]="true"
+    ></app-address-manager>
   </div>
 
   <!-- Tabela de preços de custo -->

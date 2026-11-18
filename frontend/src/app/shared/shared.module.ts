@@ -9,6 +9,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { StatusBadgeComponent } from './components/status-badge/status-badge.component';
 import { IconComponent } from './components/icon/icon.component';
 import { AvatarComponent } from './components/avatar/avatar.component';
+import { AddressManagerComponent } from './components/address-manager/address-manager.component';
 import { MediaUrlPipe } from './pipes/media-url.pipe';
 import { OrderStatusLabelPipe, RoleLabelPipe, UnitLabelPipe } from './pipes/labels.pipes';
 import { NotificationsComponent } from './components/notifications/notifications.component';
@@ -26,6 +27,7 @@ const sharedComponents = [
   StatusBadgeComponent,
   IconComponent,
   AvatarComponent,
+  AddressManagerComponent,
   NotificationsComponent,
   MediaUrlPipe,
   OrderStatusLabelPipe,

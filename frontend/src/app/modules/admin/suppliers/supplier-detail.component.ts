@@ -5,11 +5,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { UsersService } from '../../../core/services/users.service';
-import { AddressesService, CreateAddressDto } from '../../../core/services/addresses.service';
 import { SupplierProductsService } from '../../../core/services/supplier-products.service';
 import { ProductsService } from '../../../core/services/products.service';
 import { User } from '../../../core/models/user.model';
-import { Address } from '../../../core/models/address.model';
 import { Product } from '../../../core/models/product.model';
 import { SupplierProduct } from '../../../core/models/supplier-product.model';
 import { USER_STATUS_LABELS, userStatusVariant } from '../../../core/models/user-labels';
@@ -29,12 +27,6 @@ export class SupplierDetailComponent implements OnInit {
   readonly statusLabels = USER_STATUS_LABELS;
   readonly statusVariant = userStatusVariant;
 
-  addresses: Address[] = [];
-  showAddressForm = false;
-  readonly addressForm: FormGroup;
-  addressSaving = false;
-  addressError: string | null = null;
-
   prices: SupplierProduct[] = [];
   products: Product[] = [];
   readonly priceForm: FormGroup;
@@ -48,21 +40,11 @@ export class SupplierDetailComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
     private readonly usersService: UsersService,
-    private readonly addressesService: AddressesService,
     private readonly supplierProductsService: SupplierProductsService,
     private readonly productsService: ProductsService,
     auth: AuthService,
   ) {
     this.canEdit = auth.currentUser?.role === 'ADMIN';
-
-    this.addressForm = this.fb.group({
-      label: [''],
-      street: ['', [Validators.required, Validators.minLength(3)]],
-      city: ['', [Validators.required, Validators.minLength(2)]],
-      municipality: [''],
-      referencePoint: [''],
-      isDefault: [false],
-    });
 
     this.priceForm = this.fb.group({
       productId: [null, [Validators.required]],
@@ -76,14 +58,12 @@ export class SupplierDetailComponent implements OnInit {
 
     forkJoin({
       suppliers: this.usersService.list('SUPPLIER'),
-      addresses: this.addressesService.listForUser(this.supplierId),
       prices: this.supplierProductsService.listBySupplier(this.supplierId),
       products: this.productsService.list(),
     }).subscribe({
-      next: ({ suppliers, addresses, prices, products }) => {
+      next: ({ suppliers, prices, products }) => {
         this.supplier = suppliers.find((u) => u.id === this.supplierId) ?? null;
         if (!this.supplier) this.errorMessage = 'Fornecedor não encontrado.';
-        this.addresses = addresses;
         this.prices = prices;
         this.products = products;
         this.loading = false;
@@ -93,42 +73,6 @@ export class SupplierDetailComponent implements OnInit {
         this.loading = false;
       },
     });
-  }
-
-  // ---------------- Moradas ----------------
-
-  saveAddress(): void {
-    if (this.addressForm.invalid) {
-      this.addressForm.markAllAsTouched();
-      return;
-    }
-
-    const raw = this.addressForm.getRawValue();
-    const dto: CreateAddressDto = {
-      street: raw.street,
-      city: raw.city,
-      ...(raw.label ? { label: raw.label } : {}),
-      ...(raw.municipality ? { municipality: raw.municipality } : {}),
-      ...(raw.referencePoint ? { referencePoint: raw.referencePoint } : {}),
-      isDefault: !!raw.isDefault,
-    };
-
-    this.addressSaving = true;
-    this.addressError = null;
-
-    this.addressesService
-      .createForUser(this.supplierId, dto)
-      .pipe(finalize(() => (this.addressSaving = false)))
-      .subscribe({
-        next: () => {
-          this.addressForm.reset({ label: '', street: '', city: '', municipality: '', referencePoint: '', isDefault: false });
-          this.showAddressForm = false;
-          this.reloadAddresses();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.addressError = apiErrorMessage(err, 'Não foi possível guardar a morada.');
-        },
-      });
   }
 
   // ---------------- Preços de custo ----------------
@@ -176,10 +120,6 @@ export class SupplierDetailComponent implements OnInit {
           this.priceError = apiErrorMessage(err, 'Não foi possível alterar o estado do produto.');
         },
       });
-  }
-
-  private reloadAddresses(): void {
-    this.addressesService.listForUser(this.supplierId).subscribe({ next: (a) => (this.addresses = a) });
   }
 
   private reloadPrices(): void {
