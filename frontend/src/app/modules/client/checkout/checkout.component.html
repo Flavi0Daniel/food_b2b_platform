@@ -64,7 +64,7 @@
           </div>
           <div class="min-w-0">
             <p class="text-gray-700">{{ item.productName }}</p>
-            <p class="text-gray-400 text-xs">{{ item.quantity }} {{ item.unit }} × {{ item.sellPrice | number: '1.0-2' }} Kz</p>
+            <p class="text-gray-400 text-xs">{{ item.quantity }} {{ item.unit | unitLabel: item.quantity }} × {{ item.sellPrice | number: '1.0-2' }} Kz</p>
           </div>
         </div>
         <div class="flex items-center gap-2">

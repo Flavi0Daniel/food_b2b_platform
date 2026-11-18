@@ -35,7 +35,7 @@
       <p class="text-xs text-gray-400 mb-1">{{ p.categoryName }}</p>
       <p class="text-sm font-medium text-gray-800 mb-1">{{ p.name }}</p>
       <p class="text-sm text-brand-700 font-semibold mb-3">
-        {{ p.sellPrice | number: '1.0-2' }} Kz <span class="text-xs text-gray-400 font-normal">/ {{ p.baseUnit }}</span>
+        {{ p.sellPrice | number: '1.0-2' }} Kz <span class="text-xs text-gray-400 font-normal">/ {{ p.baseUnit | unitLabel }}</span>
       </p>
 
       <div class="mt-auto flex items-center gap-2">

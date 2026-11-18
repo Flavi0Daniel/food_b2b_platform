@@ -33,7 +33,7 @@
       <tbody>
         <tr *ngFor="let i of o.items" class="border-b last:border-0">
           <td class="py-2 text-gray-700">{{ i.productName }}</td>
-          <td class="py-2 text-right text-gray-600">{{ i.quantity }} {{ i.unit }}</td>
+          <td class="py-2 text-right text-gray-600">{{ i.quantity }} {{ i.unit | unitLabel: i.quantity }}</td>
           <td class="py-2 text-right text-gray-600">{{ i.costPrice | number: '1.0-2' }} Kz</td>
           <td class="py-2 text-right text-gray-700 font-medium">{{ i.quantity * i.costPrice | number: '1.0-2' }} Kz</td>
         </tr>

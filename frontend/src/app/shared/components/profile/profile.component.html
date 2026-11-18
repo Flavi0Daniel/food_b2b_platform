@@ -3,7 +3,7 @@
   <div class="bg-white border rounded-lg p-6">
     <h2 class="text-base font-semibold text-gray-800 mb-1">O meu perfil</h2>
     <p class="text-sm text-gray-500 mb-5">
-      {{ auth.currentUser?.email }} · <span class="text-gray-400">{{ auth.currentUser?.role }}</span>
+      {{ auth.currentUser?.email }} · <span class="text-gray-400">{{ auth.currentUser?.role | roleLabel }}</span>
     </p>
 
     <div *ngIf="auth.currentUser as me" class="flex flex-wrap items-center gap-4 mb-6">

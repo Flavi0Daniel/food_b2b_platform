@@ -10,6 +10,7 @@ import { StatusBadgeComponent } from './components/status-badge/status-badge.com
 import { IconComponent } from './components/icon/icon.component';
 import { AvatarComponent } from './components/avatar/avatar.component';
 import { MediaUrlPipe } from './pipes/media-url.pipe';
+import { OrderStatusLabelPipe, RoleLabelPipe, UnitLabelPipe } from './pipes/labels.pipes';
 import { NotificationsComponent } from './components/notifications/notifications.component';
 
 // Conjunto inicial de ícones. Adicionar aqui sempre que um novo ícone for usado num template
@@ -27,6 +28,9 @@ const sharedComponents = [
   AvatarComponent,
   NotificationsComponent,
   MediaUrlPipe,
+  OrderStatusLabelPipe,
+  UnitLabelPipe,
+  RoleLabelPipe,
 ];
 
 @NgModule({

@@ -114,6 +114,26 @@ export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = {
   REJECTED: 'Rejeitado',
 };
 
+/**
+ * Eventos que o histórico da encomenda grava além dos estados da própria encomenda
+ * (o backend regista a validação/rejeição do pagamento com estes códigos).
+ */
+const HISTORY_EVENT_LABELS: Record<string, string> = {
+  PAYMENT_VALIDATED: 'Pagamento validado',
+  PAYMENT_REJECTED: 'Pagamento rejeitado',
+};
+
+/**
+ * Qualquer estado ou evento de encomenda em português. Um código que ainda não conheçamos aparece
+ * legível ("Em revisao") em vez de em maiúsculas técnicas ("EM_REVISAO").
+ */
+export function orderStatusLabel(status: string): string {
+  const known = ORDER_STATUS_LABELS[status as OrderStatus] ?? HISTORY_EVENT_LABELS[status];
+  if (known) return known;
+  const text = status.replace(/_/g, ' ').toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export type BadgeVariant = 'gray' | 'yellow' | 'blue' | 'green' | 'red';
 
 export function orderStatusVariant(status: OrderStatus): BadgeVariant {

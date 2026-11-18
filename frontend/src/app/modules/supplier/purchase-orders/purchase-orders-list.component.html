@@ -17,7 +17,7 @@
       <div>
         <p class="text-sm font-medium text-gray-800">{{ o.poNumber }}</p>
         <p class="text-sm text-gray-500 mt-1">
-          <span *ngFor="let i of o.items; let last = last">{{ i.productName }} ({{ i.quantity }} {{ i.unit }})<span *ngIf="!last">, </span></span>
+          <span *ngFor="let i of o.items; let last = last">{{ i.productName }} ({{ i.quantity }} {{ i.unit | unitLabel: i.quantity }})<span *ngIf="!last">, </span></span>
         </p>
         <p class="text-xs text-gray-400 mt-1">
           Recebida em {{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}<span *ngIf="o.pickupScheduledAt"> · recolha prevista {{ o.pickupScheduledAt | date: 'dd/MM/yyyy HH:mm' }}</span>

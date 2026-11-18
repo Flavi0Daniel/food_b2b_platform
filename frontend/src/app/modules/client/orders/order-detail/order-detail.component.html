@@ -34,7 +34,7 @@
       <div *ngFor="let item of o.items" class="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
         <div>
           <p class="text-gray-700">{{ item.productName }}</p>
-          <p class="text-xs text-gray-400">{{ item.quantity }} {{ item.unit }} × {{ item.unitPrice | number: '1.0-2' }} Kz</p>
+          <p class="text-xs text-gray-400">{{ item.quantity }} {{ item.unit | unitLabel: item.quantity }} × {{ item.unitPrice | number: '1.0-2' }} Kz</p>
         </div>
         <span class="text-gray-700 font-medium">{{ item.subtotal | number: '1.0-2' }} Kz</span>
       </div>
@@ -113,7 +113,7 @@
   <div class="bg-white border rounded-lg p-5">
     <h3 class="text-sm font-semibold text-gray-700 mb-3">Histórico</h3>
     <div *ngFor="let h of o.history" class="text-sm py-1.5 border-b last:border-0">
-      <span class="text-gray-700">{{ h.status }}</span>
+      <span class="text-gray-700">{{ h.status | orderStatusLabel }}</span>
       <span class="text-gray-400"> · {{ h.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
       <p *ngIf="h.note" class="text-xs text-gray-400">{{ h.note }}</p>
     </div>

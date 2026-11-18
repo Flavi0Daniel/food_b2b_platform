@@ -98,7 +98,7 @@
             <p class="text-gray-800">{{ row.productName }}</p>
             <p class="text-xs text-gray-400">{{ row.categoryName }}</p>
           </td>
-          <td class="py-2 text-gray-600">{{ row.baseUnit }}</td>
+          <td class="py-2 text-gray-600">{{ row.baseUnit | unitLabel }}</td>
           <td class="py-2 text-right text-gray-700">{{ row.costPrice | number: '1.0-2' }}</td>
           <td class="py-2">
             <app-status-badge [label]="row.isActive ? 'Ativo' : 'Inativo'" [variant]="row.isActive ? 'green' : 'gray'"></app-status-badge>
@@ -126,7 +126,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Produto</label>
           <select formControlName="productId" class="w-full rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
             <option [ngValue]="null" disabled>Escolha o produto</option>
-            <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }} ({{ p.baseUnit }})</option>
+            <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }} ({{ p.baseUnit | unitLabel }})</option>
           </select>
         </div>
         <div>
