@@ -11,6 +11,7 @@ import {
   updateAvailabilitySchema,
   updatePriceSchema,
   updateProductSchema,
+  updateUnitSchema,
 } from './products.schema';
 
 const router = Router();
@@ -41,6 +42,13 @@ router.post(
 );
 
 router.delete('/:id/image', authorize('ADMIN'), validate({ params: productIdParamSchema }), productsController.removeImage);
+
+router.patch(
+  '/:id/unit',
+  authorize('ADMIN'),
+  validate({ params: productIdParamSchema, body: updateUnitSchema }),
+  productsController.changeUnit,
+);
 
 router.patch(
   '/:id/availability',

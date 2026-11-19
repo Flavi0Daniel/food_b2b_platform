@@ -7,6 +7,7 @@ import { CreateProductDto, ProductsService } from '../../../core/services/produc
 import { Category, Product, ProductUnit } from '../../../core/models/product.model';
 import { apiErrorMessage } from '../../../core/utils/api-error';
 import { resizeImage } from '../../../core/utils/image-resize';
+import { unitLabel } from '../../../core/models/unit-labels';
 
 @Component({
   selector: 'app-products-admin',
@@ -50,6 +51,11 @@ export class ProductsAdminComponent implements OnInit {
   readonly editForm: FormGroup;
   savingEdit = false;
   editError: string | null = null;
+
+  /** Mudança de unidade (com regras e efeitos próprios, por isso fora do formulário de edição). */
+  unitDraft: ProductUnit | null = null;
+  unitBusy = false;
+  unitInfo: string | null = null;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -235,12 +241,54 @@ export class ProductsAdminComponent implements OnInit {
 
   startProductEdit(product: Product): void {
     this.editingProductId = product.id;
+    this.unitDraft = product.baseUnit;
+    this.unitInfo = null;
     this.editForm.patchValue({
       name: product.name,
       categoryId: product.categoryId,
       description: product.description ?? '',
     });
     this.editError = null;
+  }
+
+  onUnitDraftChange(event: Event): void {
+    this.unitDraft = (event.target as HTMLSelectElement).value as ProductUnit;
+  }
+
+  changeUnit(product: Product): void {
+    const unit = this.unitDraft;
+    if (unit === null || unit === product.baseUnit) return;
+
+    const message =
+      `Mudar a unidade de "${product.name}" de ${unitLabel(product.baseUnit)} para ${unitLabel(unit)}?\n\n` +
+      'Os preços de custo dos fornecedores para este produto ficam desativados (foram acordados na unidade ' +
+      'antiga) e eles são avisados para os definir de novo. Reveja também o preço de venda.';
+    if (!confirm(message)) return;
+
+    this.unitBusy = true;
+    this.editError = null;
+    this.unitInfo = null;
+
+    this.productsService
+      .changeUnit(product.id, unit)
+      .pipe(finalize(() => (this.unitBusy = false)))
+      .subscribe({
+        next: (result) => {
+          this.replace(result);
+          this.unitDraft = result.baseUnit;
+          const n = result.deactivatedSupplierPrices;
+          this.unitInfo =
+            n === 0
+              ? 'Unidade alterada.'
+              : n === 1
+                ? 'Unidade alterada. 1 preço de fornecedor ficou desativado e o fornecedor foi avisado.'
+                : `Unidade alterada. ${n} preços de fornecedores ficaram desativados e os fornecedores foram avisados.`;
+        },
+        error: (err: HttpErrorResponse) => {
+          this.editError = apiErrorMessage(err, 'Não foi possível alterar a unidade.');
+          this.unitDraft = product.baseUnit; // volta à unidade atual
+        },
+      });
   }
 
   cancelProductEdit(): void {

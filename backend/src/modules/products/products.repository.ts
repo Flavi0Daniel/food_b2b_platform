@@ -1,3 +1,4 @@
+import { Db, pool } from '../../config/database';
 import { exec, query, queryOne } from '../../common/utils/db';
 import { CreateProductDto, ListProductsQuery, UpdateProductDto } from './products.schema';
 
@@ -30,8 +31,28 @@ export const productsRepository = {
     return created;
   },
 
-  findById(id: number): Promise<ProductRecord | null> {
-    return queryOne<ProductRecord>(`${SELECT_PRODUCT} WHERE p.id = ? LIMIT 1`, [id]);
+  findById(id: number, db: Db = pool): Promise<ProductRecord | null> {
+    return queryOne<ProductRecord>(`${SELECT_PRODUCT} WHERE p.id = ? LIMIT 1`, [id], db);
+  },
+
+  /** Bloqueia a linha do produto até ao fim da transação (serializa com a criação de encomendas). */
+  lockById: (id: number, db: Db) =>
+    queryOne<{ id: number; base_unit: string }>('SELECT id, base_unit FROM products WHERE id = ? FOR UPDATE', [id], db),
+
+  /** Encomendas ainda não concluídas (nem canceladas) que incluem o produto. */
+  async countOpenOrdersWithProduct(id: number, db: Db = pool): Promise<number> {
+    const row = await queryOne<{ total: number }>(
+      `SELECT COUNT(DISTINCT o.id) AS total
+       FROM orders o JOIN order_items oi ON oi.order_id = o.id
+       WHERE oi.product_id = ? AND o.order_status NOT IN ('DELIVERED', 'CANCELLED')`,
+      [id],
+      db,
+    );
+    return row?.total ?? 0;
+  },
+
+  async updateUnit(id: number, baseUnit: string, db: Db = pool): Promise<void> {
+    await exec('UPDATE products SET base_unit = ? WHERE id = ?', [baseUnit, id], db);
   },
 
   list(filters: ListProductsQuery): Promise<ProductRecord[]> {

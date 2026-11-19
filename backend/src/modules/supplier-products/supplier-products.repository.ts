@@ -60,6 +60,19 @@ export const supplierProductsRepository = {
     ))!;
   },
 
+  /** Desativa os preços ATIVOS de um produto (ex: a unidade mudou) e devolve os fornecedores afetados. */
+  async deactivateAllForProduct(productId: number, db: Db = pool): Promise<number[]> {
+    const rows = await query<{ supplier_id: number }>(
+      'SELECT supplier_id FROM supplier_products WHERE product_id = ? AND is_active = TRUE',
+      [productId],
+      db,
+    );
+    if (rows.length) {
+      await exec('UPDATE supplier_products SET is_active = FALSE WHERE product_id = ? AND is_active = TRUE', [productId], db);
+    }
+    return rows.map((r) => r.supplier_id);
+  },
+
   /** Preço atual (antes de ser substituído), para detetar aumentos. */
   findCurrent: (supplierId: number, productId: number, db: Db = pool) =>
     queryOne<{ cost_price: number; is_active: boolean }>(

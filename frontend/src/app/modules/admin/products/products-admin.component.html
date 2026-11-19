@@ -255,7 +255,31 @@
                     <p class="text-xs text-gray-400">JPG, PNG ou WEBP. A imagem é reduzida automaticamente antes de ser enviada.</p>
                   </div>
                 </div>
-                <p class="text-xs text-gray-400">A unidade e o preço de venda não se alteram aqui (os preços de custo dos fornecedores dependem da unidade).</p>
+                <div class="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                  <p class="text-xs font-medium text-amber-800">Unidade de venda</p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <select
+                      (change)="onUnitDraftChange($event)"
+                      [disabled]="unitBusy"
+                      class="rounded-md border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"
+                    >
+                      <option *ngFor="let u of units" [value]="u" [selected]="u === unitDraft">{{ u | unitLabel }}</option>
+                    </select>
+                    <button
+                      type="button"
+                      (click)="changeUnit(p)"
+                      [disabled]="unitBusy || unitDraft === null || unitDraft === p.baseUnit"
+                      class="text-xs font-medium bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-3 py-2 rounded-md transition-colors"
+                    >
+                      {{ unitBusy ? 'A alterar...' : 'Alterar unidade' }}
+                    </button>
+                  </div>
+                  <p class="text-xs text-amber-700">
+                    Só é possível quando não há encomendas em curso com este produto. Os preços de custo dos fornecedores ficam
+                    desativados e eles são avisados para os definir de novo. O preço de venda altera-se na tabela.
+                  </p>
+                  <p *ngIf="unitInfo" class="text-xs font-medium text-green-700">{{ unitInfo }}</p>
+                </div>
                 <p *ngIf="editError" class="text-sm text-red-600">{{ editError }}</p>
                 <div class="flex gap-3">
                   <button type="submit" [disabled]="savingEdit" class="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-xs font-medium px-4 py-2 rounded-md transition-colors">

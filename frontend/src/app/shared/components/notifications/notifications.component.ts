@@ -94,6 +94,7 @@ export class NotificationsComponent implements OnInit {
     if (role === 'CLIENT' && item.relatedOrderId) return `/client/orders/${item.relatedOrderId}`;
     if (staff && item.type === 'SUPPLIER_PRICE_INCREASE') return '/admin/suppliers';
     // Fornecedor e Transportadora não recebem ids de encomendas (intermediação cega): levam à lista.
+    if (role === 'SUPPLIER' && item.type === 'PRODUCT_UNIT_CHANGED') return '/supplier/pricing';
     if (role === 'SUPPLIER' && item.type?.startsWith('PO_')) return '/supplier/purchase-orders';
     if (role === 'CARRIER' && item.type?.startsWith('SHIPMENT_')) return '/carrier/shipments';
     return null;

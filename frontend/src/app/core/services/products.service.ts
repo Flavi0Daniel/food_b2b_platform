@@ -14,6 +14,9 @@ export interface CreateProductDto {
   sellPrice?: number;
 }
 
+/** Resultado de mudar a unidade: o produto atualizado + quantos preços de fornecedores ficaram desativados. */
+export type ProductUnitChange = Product & { deactivatedSupplierPrices: number };
+
 /** Só dados descritivos; unidade e preço de venda têm tratamento próprio. Descrição vazia limpa-a. */
 export interface UpdateProductDto {
   name?: string;
@@ -52,6 +55,16 @@ export class ProductsService {
 
   removeImage(id: number): Observable<Product> {
     return this.http.delete<ApiSuccess<Product>>(`${this.productsUrl}/${id}/image`).pipe(map((res) => res.data));
+  }
+
+  /**
+   * Só ADMIN. O backend recusa (409, com a explicação) se houver encomendas em curso com o produto, e, quando
+   * aceita, desativa os preços de custo dos fornecedores (acordados na unidade antiga) e avisa-os.
+   */
+  changeUnit(id: number, baseUnit: ProductUnit): Observable<ProductUnitChange> {
+    return this.http
+      .patch<ApiSuccess<ProductUnitChange>>(`${this.productsUrl}/${id}/unit`, { baseUnit })
+      .pipe(map((res) => res.data));
   }
 
   renameCategory(id: number, name: string): Observable<Category> {

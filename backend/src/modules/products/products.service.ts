@@ -2,7 +2,11 @@ import { AppError } from '../../common/errors/AppError';
 import { isStaff, UserRole } from '../../common/types';
 import { deleteStoredProductImage } from '../../common/middlewares/upload.middleware';
 import { productImageUrl } from '../../common/utils/files';
+import { withTransaction } from '../../config/database';
+import { notificationsRepository } from '../notifications/notifications.repository';
+import { supplierProductsRepository } from '../supplier-products/supplier-products.repository';
 import { productsRepository, ProductRecord } from './products.repository';
+import { unitName } from './unit-names';
 import { CreateProductDto, ListProductsQuery, UpdateProductDto } from './products.schema';
 
 /** Fornecedores e transportadoras não precisam do preço de venda: nunca o recebem. */
@@ -58,6 +62,46 @@ export const productsService = {
 
     await productsRepository.updatePrice(id, sellPrice);
     return present((await productsRepository.findById(id))!);
+  },
+
+  /**
+   * Muda a unidade de venda. Os preços de custo dos fornecedores foram acordados na unidade antiga, por isso:
+   *  - recusa se houver encomendas em curso com o produto (a aprovação juntaria a unidade ANTIGA da encomenda
+   *    com um preço da unidade NOVA: "10 kg ao custo de uma caixa");
+   *  - desativa os preços ativos dos fornecedores e avisa cada um para os definir de novo.
+   * O histórico não é afetado: encomendas e ordens guardam a sua própria cópia da unidade.
+   */
+  async changeUnit(id: number, baseUnit: string): Promise<ProductRecord & { deactivated_supplier_prices: number }> {
+    return withTransaction(async (conn) => {
+      // Bloqueia o produto ANTES de contar: a criação de encomendas lê-o com bloqueio partilhado,
+      // por isso nenhuma encomenda nova escapa entre a contagem e a alteração.
+      const locked = await productsRepository.lockById(id, conn);
+      if (!locked) throw AppError.notFound('Produto não encontrado');
+
+      if (locked.base_unit === baseUnit) {
+        return { ...present((await productsRepository.findById(id, conn))!), deactivated_supplier_prices: 0 };
+      }
+
+      const openOrders = await productsRepository.countOpenOrdersWithProduct(id, conn);
+      if (openOrders > 0) {
+        throw AppError.conflict(
+          `Não é possível alterar a unidade: há ${openOrders} encomenda(s) em curso com este produto. Espere que sejam concluídas ou canceladas.`,
+        );
+      }
+
+      await productsRepository.updateUnit(id, baseUnit, conn);
+      const supplierIds = await supplierProductsRepository.deactivateAllForProduct(id, conn);
+      const product = (await productsRepository.findById(id, conn))!;
+
+      for (const supplierId of supplierIds) {
+        await notificationsRepository.create(conn, supplierId, {
+          title: 'Unidade de produto alterada',
+          message: `A unidade de venda de "${product.name}" mudou de ${unitName(locked.base_unit)} para ${unitName(baseUnit)}. O seu preço de custo foi desativado: defina-o de novo na sua tabela de preços.`,
+          type: 'PRODUCT_UNIT_CHANGED',
+        });
+      }
+      return { ...present(product), deactivated_supplier_prices: supplierIds.length };
+    });
   },
 
   /** `storedPath` é 'products/<uuid>.<ext>', já gravado em disco e verificado pelo middleware. */

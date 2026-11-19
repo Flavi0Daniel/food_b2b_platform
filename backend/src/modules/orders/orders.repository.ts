@@ -206,8 +206,10 @@ export const ordersRepository = {
 
   async findProducts(db: Db, ids: number[]): Promise<ProductForOrder[]> {
     if (!ids.length) return [];
+    // LOCK IN SHARE MODE: se um Admin estiver a mudar a unidade deste produto, a encomenda espera e lê a
+    // unidade NOVA. Sem isto podia nascer uma encomenda na unidade antiga logo após a verificação da alteração.
     return query<ProductForOrder>(
-      'SELECT id, name, base_unit, is_available, sell_price FROM products WHERE id IN (?)',
+      'SELECT id, name, base_unit, is_available, sell_price FROM products WHERE id IN (?) LOCK IN SHARE MODE',
       [ids],
       db,
     );

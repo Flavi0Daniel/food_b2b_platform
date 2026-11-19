@@ -39,6 +39,11 @@ export const productsController = {
     sendSuccess(res, product, 'Foto do produto removida');
   }),
 
+  changeUnit: asyncHandler(async (req: Request, res: Response) => {
+    const result = await productsService.changeUnit(Number(req.params.id), req.body.baseUnit);
+    sendSuccess(res, result, 'Unidade do produto alterada');
+  }),
+
   updateAvailability: asyncHandler(async (req: Request, res: Response) => {
     const product = await productsService.setAvailability(Number(req.params.id), req.body.isAvailable);
     sendSuccess(res, product, 'Disponibilidade do produto atualizada');

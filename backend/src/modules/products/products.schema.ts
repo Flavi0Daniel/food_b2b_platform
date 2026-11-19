@@ -27,6 +27,11 @@ export const updateProductSchema = z
   .refine((value) => Object.keys(value).length > 0, { message: 'Indique pelo menos um campo a alterar' });
 export type UpdateProductDto = z.infer<typeof updateProductSchema>;
 
+// Mesmas unidades que `createProductSchema`. A alteração tem endpoint próprio porque tem efeitos
+// (desativa os preços dos fornecedores) e regras (não há encomendas em curso com o produto).
+export const updateUnitSchema = z.object({ baseUnit: z.enum(['KG', 'CAIXA', 'BALDE', 'SACO', 'UNIDADE']) }).strict();
+export type UpdateUnitDto = z.infer<typeof updateUnitSchema>;
+
 export const updateAvailabilitySchema = z.object({ isAvailable: z.boolean() }).strict();
 export type UpdateAvailabilityDto = z.infer<typeof updateAvailabilitySchema>;
 
